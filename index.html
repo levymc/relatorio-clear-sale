@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -11,7 +12,7 @@
             padding: 20px;
             background-color: #f5f5f5;
         }
-        
+
         .container {
             max-width: 100%;
             margin: 0 auto;
@@ -20,26 +21,26 @@
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
             overflow: hidden;
         }
-        
+
         .header {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
             padding: 30px;
             text-align: center;
         }
-        
+
         .header h1 {
             margin: 0;
             font-size: 2.5rem;
             font-weight: 300;
         }
-        
+
         .header p {
             margin: 10px 0 0 0;
             opacity: 0.9;
             font-size: 1.1rem;
         }
-        
+
         .stats {
             display: flex;
             justify-content: space-around;
@@ -47,24 +48,24 @@
             padding: 20px;
             border-bottom: 1px solid #e9ecef;
         }
-        
+
         .stat {
             text-align: center;
         }
-        
+
         .stat-number {
             font-size: 2rem;
             font-weight: bold;
             color: #667eea;
             display: block;
         }
-        
+
         .stat-label {
             color: #6c757d;
             font-size: 0.9rem;
             margin-top: 5px;
         }
-        
+
         .controls {
             padding: 20px;
             background: #f8f9fa;
@@ -74,7 +75,7 @@
             align-items: center;
             flex-wrap: wrap;
         }
-        
+
         .search-box {
             flex: 1;
             min-width: 300px;
@@ -84,12 +85,12 @@
             font-size: 16px;
             transition: border-color 0.3s;
         }
-        
+
         .search-box:focus {
             outline: none;
             border-color: #667eea;
         }
-        
+
         .download-btn {
             background: #28a745;
             color: white;
@@ -101,24 +102,24 @@
             font-weight: 500;
             transition: all 0.3s;
         }
-        
+
         .download-btn:hover {
             background: #218838;
             transform: translateY(-2px);
         }
-        
+
         .table-container {
             overflow-x: auto;
             max-height: 600px;
             overflow-y: auto;
         }
-        
+
         table {
             width: 100%;
             border-collapse: collapse;
             background: white;
         }
-        
+
         th {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
@@ -128,43 +129,57 @@
             position: sticky;
             top: 0;
             z-index: 10;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
         }
-        
-        th.id-col { min-width: 80px; }
-        th.document-col { min-width: 120px; }
-        th.score-col { min-width: 80px; }
-        th.persona-col { min-width: 100px; }
-        th.consumption-col { min-width: 120px; }
-        
+
+        th.id-col {
+            min-width: 80px;
+        }
+
+        th.document-col {
+            min-width: 120px;
+        }
+
+        th.score-col {
+            min-width: 80px;
+        }
+
+        th.persona-col {
+            min-width: 100px;
+        }
+
+        th.consumption-col {
+            min-width: 120px;
+        }
+
         td {
             padding: 12px;
             border-bottom: 1px solid #e9ecef;
             transition: background-color 0.2s;
         }
-        
+
         tr:hover {
             background-color: #f8f9fa;
         }
-        
-        .score-high { 
+
+        .score-high {
             background: linear-gradient(135deg, #d4edda, #c3e6cb);
             color: #155724;
             font-weight: bold;
         }
-        
-        .score-medium { 
+
+        .score-medium {
             background: linear-gradient(135deg, #fff3cd, #ffeaa7);
             color: #856404;
             font-weight: bold;
         }
-        
-        .score-low { 
+
+        .score-low {
             background: linear-gradient(135deg, #f8d7da, #f5c6cb);
             color: #721c24;
             font-weight: bold;
         }
-        
+
         .document-id {
             font-family: 'Courier New', monospace;
             background: #f8f9fa;
@@ -172,36 +187,36 @@
             border-radius: 4px;
             font-size: 0.9rem;
         }
-        
+
         .cpf {
             font-family: 'Courier New', monospace;
             font-weight: bold;
             color: #495057;
         }
-        
+
         .timestamp {
             font-size: 0.8rem;
             color: #6c757d;
         }
-        
+
         .no-results {
             text-align: center;
             padding: 50px;
             color: #6c757d;
             font-size: 1.2rem;
         }
-        
+
         @media (max-width: 768px) {
             .controls {
                 flex-direction: column;
                 gap: 10px;
             }
-            
+
             .search-box {
                 min-width: auto;
                 width: 100%;
             }
-            
+
             .stats {
                 flex-direction: column;
                 gap: 20px;
@@ -209,16 +224,17 @@
         }
     </style>
 </head>
+
 <body>
     <div class="container">
         <div class="header">
             <h1>📊 Análise Credit Pro</h1>
             <p>Scores e Potenciais de Consumo por Cliente</p>
         </div>
-        
+
         <div class="stats">
             <div class="stat">
-                <span class="stat-number" id="total-records">14</span>
+                <span class="stat-number" id="total-records">15</span>
                 <div class="stat-label">Total de Registros</div>
             </div>
             <div class="stat">
@@ -230,12 +246,13 @@
                 <div class="stat-label">Campos por Registro</div>
             </div>
         </div>
-        
+
         <div class="controls">
-            <input type="text" class="search-box" id="searchBox" placeholder="🔍 Pesquisar por ID, CPF ou qualquer valor...">
+            <input type="text" class="search-box" id="searchBox"
+                placeholder="🔍 Pesquisar por ID, CPF ou qualquer valor...">
             <button class="download-btn" onclick="downloadCSV()">📥 Baixar CSV</button>
         </div>
-        
+
         <div class="table-container">
             <table id="dataTable">
                 <thead>
@@ -270,30 +287,324 @@
 
     <script>
         const data = [
-            {"id": "140ea4376c8c47a8a7bd1d1a89d6d021", "document": "39272580838", "scoreV3": "21", "personaBancarizada": "2", "personaPresencaDigital": "5", "personaBanco": "Bancos Digitais", "personaCategoriaCartao": "Intermediario", "flagVAVR": "0", "consumoGeral": "46", "magazine": "8", "delivery": "62", "vestuario": "71", "esportes": "26", "farmacia": "78", "casa": "45", "cosmeticos": "19", "eletronicos": "93", "mercados": "44", "pets": "6", "lazer": "87"},
-            {"id": "0c342702942a48b68a3243e8058ca330", "document": "35925580800", "scoreV3": "286", "personaBancarizada": "1", "personaPresencaDigital": "6", "personaBanco": "Bancos Digitais", "personaCategoriaCartao": "Intermediario", "flagVAVR": "0", "consumoGeral": "76", "magazine": "46", "delivery": "20", "vestuario": "6", "esportes": "27", "farmacia": "59", "casa": "31", "cosmeticos": "34", "eletronicos": "33", "mercados": "85", "pets": "51", "lazer": "3"},
-            {"id": "85a485434f50404aaebbcb616dcaa92c", "document": "44141999806", "scoreV3": "193", "personaBancarizada": "4", "personaPresencaDigital": "4", "personaBanco": "Bancos Digitais", "personaCategoriaCartao": "Intermediario", "flagVAVR": "0", "consumoGeral": "46", "magazine": "10", "delivery": "23", "vestuario": "49", "esportes": "86", "farmacia": "67", "casa": "2", "cosmeticos": "59", "eletronicos": "93", "mercados": "22", "pets": "17", "lazer": "92"},
-            {"id": "0a21051fcb8f49d2b0c4e673e8a18dba", "document": "34376320862", "scoreV3": "667", "personaBancarizada": "2", "personaPresencaDigital": "3", "personaBanco": "Bancos Digitais", "personaCategoriaCartao": "Intermediario", "flagVAVR": "0", "consumoGeral": "64", "magazine": "1", "delivery": "34", "vestuario": "96", "esportes": "54", "farmacia": "68", "casa": "89", "cosmeticos": "33", "eletronicos": "96", "mercados": "51", "pets": "60", "lazer": "41"},
-            {"id": "42b946447a62483589afd26d94f6467b", "document": "10700421459", "scoreV3": "279", "personaBancarizada": "2", "personaPresencaDigital": "3", "personaBanco": "Bancos Digitais", "personaCategoriaCartao": "Intermediario", "flagVAVR": "0", "consumoGeral": "56", "magazine": "78", "delivery": "58", "vestuario": "66", "esportes": "61", "farmacia": "85", "casa": "6", "cosmeticos": "91", "eletronicos": "95", "mercados": "55", "pets": "32", "lazer": "26"},
-            {"id": "cbd8fe428c8443d9af4b37677114b504", "document": "52386825817", "scoreV3": "74", "personaBancarizada": "1", "personaPresencaDigital": "1", "personaBanco": "Bancos Digitais", "personaCategoriaCartao": "Intermediario", "flagVAVR": "0", "consumoGeral": "23", "magazine": "71", "delivery": "14", "vestuario": "13", "esportes": "61", "farmacia": "6", "casa": "62", "cosmeticos": "74", "eletronicos": "1", "mercados": "1", "pets": "15", "lazer": "67"},
-            {"id": "7c1c14a6cf464110bdc0e60e7c6cc0a3", "document": "07062261513", "scoreV3": "336", "personaBancarizada": "4", "personaPresencaDigital": "2", "personaBanco": "Bancos Digitais", "personaCategoriaCartao": "Intermediario", "flagVAVR": "0", "consumoGeral": "1", "magazine": "9", "delivery": "26", "vestuario": "17", "esportes": "3", "farmacia": "48", "casa": "54", "cosmeticos": "52", "eletronicos": "20", "mercados": "91", "pets": "44", "lazer": "82"},
-            {"id": "04aad4455b5e4a09916e91fc9f6604be", "document": "39600383804", "scoreV3": "108", "personaBancarizada": "1", "personaPresencaDigital": "1", "personaBanco": "Bancos Digitais", "personaCategoriaCartao": "Intermediario", "flagVAVR": "0", "consumoGeral": "25", "magazine": "37", "delivery": "25", "vestuario": "29", "esportes": "91", "farmacia": "2", "casa": "60", "cosmeticos": "74", "eletronicos": "20", "mercados": "7", "pets": "36", "lazer": "35"},
-            {"id": "ca68fcef0ad74a848ef9129c8a224297", "document": "48993626847", "scoreV3": "724", "personaBancarizada": "4", "personaPresencaDigital": "2", "personaBanco": "Bancos Digitais", "personaCategoriaCartao": "Intermediario", "flagVAVR": "0", "consumoGeral": "34", "magazine": "76", "delivery": "8", "vestuario": "5", "esportes": "28", "farmacia": "6", "casa": "54", "cosmeticos": "37", "eletronicos": "97", "mercados": "14", "pets": "68", "lazer": "65"},
-            {"id": "d737722cf5b74c299e63fefe652ca849", "document": "37656250867", "scoreV3": "737", "personaBancarizada": "5", "personaPresencaDigital": "5", "personaBanco": "Bancos Digitais", "personaCategoriaCartao": "Intermediario", "flagVAVR": "0", "consumoGeral": "1", "magazine": "9", "delivery": "19", "vestuario": "63", "esportes": "50", "farmacia": "66", "casa": "16", "cosmeticos": "31", "eletronicos": "88", "mercados": "34", "pets": "50", "lazer": "21"},
-            {"id": "e684c044e63243f38a9214326d683592", "document": "41135581835", "scoreV3": "238", "personaBancarizada": "1", "personaPresencaDigital": "6", "personaBanco": "Bancos Digitais", "personaCategoriaCartao": "Intermediario", "flagVAVR": "0", "consumoGeral": "73", "magazine": "60", "delivery": "41", "vestuario": "90", "esportes": "58", "farmacia": "23", "casa": "41", "cosmeticos": "70", "eletronicos": "21", "mercados": "60", "pets": "16", "lazer": "40"},
-            {"id": "bbec70b75f734a2aab88ddf4e9c43a36", "document": "50523433883", "scoreV3": "894", "personaBancarizada": "3", "personaPresencaDigital": "2", "personaBanco": "Bancos Digitais", "personaCategoriaCartao": "Intermediario", "flagVAVR": "0", "consumoGeral": "57", "magazine": "61", "delivery": "66", "vestuario": "89", "esportes": "76", "farmacia": "19", "casa": "3", "cosmeticos": "23", "eletronicos": "100", "mercados": "89", "pets": "28", "lazer": "86"},
-            {"id": "61a9b0f1c7dd4925859766c58521b1c3", "document": "44365525867", "scoreV3": "180", "personaBancarizada": "4", "personaPresencaDigital": "2", "personaBanco": "Bancos Digitais", "personaCategoriaCartao": "Intermediario", "flagVAVR": "0", "consumoGeral": "76", "magazine": "19", "delivery": "13", "vestuario": "14", "esportes": "29", "farmacia": "6", "casa": "47", "cosmeticos": "50", "eletronicos": "89", "mercados": "67", "pets": "1", "lazer": "54"},
-            {"id": "d306aa1797ed4f1f99b209d0b08c6ac8", "document": "46728004823", "scoreV3": "578", "personaBancarizada": "2", "personaPresencaDigital": "5", "personaBanco": "Bancos Digitais", "personaCategoriaCartao": "Intermediario", "flagVAVR": "0", "consumoGeral": "51", "magazine": "99", "delivery": "96", "vestuario": "38", "esportes": "58", "farmacia": "59", "casa": "27", "cosmeticos": "24", "eletronicos": "95", "mercados": "99", "pets": "6", "lazer": "23"}
+            {
+                "id": "617717a40aa244bc99e169816578d278",
+                "document": "39272580838",
+                "scoreV3": "692",
+                "personaBancarizada": "5",
+                "personaPresencaDigital": "6",
+                "personaBanco": "Bancos Digitais",
+                "personaCategoriaCartao": "Entrada",
+                "flagVAVR": "1",
+                "consumoGeral": "72",
+                "magazine": null,
+                "delivery": "86",
+                "vestuario": "13",
+                "esportes": null,
+                "farmacia": null,
+                "casa": null,
+                "cosmeticos": null,
+                "eletronicos": null,
+                "mercados": "11",
+                "pets": null,
+                "lazer": null
+            },
+            {
+                "id": "86d1a8eb692b4ee197ca9164eb73b0f7",
+                "document": "35925580800",
+                "scoreV3": "866",
+                "personaBancarizada": "5",
+                "personaPresencaDigital": "6",
+                "personaBanco": "Grandes Bancos públicos",
+                "personaCategoriaCartao": "Premium",
+                "flagVAVR": "0",
+                "consumoGeral": "100",
+                "magazine": "51",
+                "delivery": "87",
+                "vestuario": "99",
+                "esportes": null,
+                "farmacia": null,
+                "casa": "100",
+                "cosmeticos": null,
+                "eletronicos": "98",
+                "mercados": null,
+                "pets": null,
+                "lazer": null
+            },
+            {
+                "id": "47fdf89fa282499ebaf4c6d875a3c45f",
+                "document": "44141999806",
+                "scoreV3": "471",
+                "personaBancarizada": "1",
+                "personaPresencaDigital": "2",
+                "personaBanco": "Grandes Bancos privados",
+                "personaCategoriaCartao": "Entrada",
+                "flagVAVR": "0",
+                "consumoGeral": null,
+                "magazine": null,
+                "delivery": null,
+                "vestuario": null,
+                "esportes": null,
+                "farmacia": null,
+                "casa": null,
+                "cosmeticos": null,
+                "eletronicos": null,
+                "mercados": null,
+                "pets": null,
+                "lazer": null
+            },
+            {
+                "id": "eb55e9607a1b429798cbdf76fe5bed6b",
+                "document": "34376320862",
+                "scoreV3": "379",
+                "personaBancarizada": "5",
+                "personaPresencaDigital": "5",
+                "personaBanco": "Bancos Digitais",
+                "personaCategoriaCartao": "Intermediário",
+                "flagVAVR": "0",
+                "consumoGeral": "69",
+                "magazine": "56",
+                "delivery": "71",
+                "vestuario": null,
+                "esportes": null,
+                "farmacia": null,
+                "casa": null,
+                "cosmeticos": null,
+                "eletronicos": null,
+                "mercados": null,
+                "pets": null,
+                "lazer": null
+            },
+            {
+                "id": "f8e347517ba14e2b9aa8e4243d4ecd69",
+                "document": "10700421459",
+                "scoreV3": "649",
+                "personaBancarizada": "5",
+                "personaPresencaDigital": "6",
+                "personaBanco": "Bancos Digitais",
+                "personaCategoriaCartao": "Entrada",
+                "flagVAVR": "0",
+                "consumoGeral": "91",
+                "magazine": "79",
+                "delivery": "87",
+                "vestuario": null,
+                "esportes": "67",
+                "farmacia": null,
+                "casa": "36",
+                "cosmeticos": null,
+                "eletronicos": null,
+                "mercados": "41",
+                "pets": null,
+                "lazer": null
+            },
+            {
+                "id": "07a75e5c409644afb4edf05e24b51a73",
+                "document": "52386825817",
+                "scoreV3": "323",
+                "personaBancarizada": "2",
+                "personaPresencaDigital": "2",
+                "personaBanco": null,
+                "personaCategoriaCartao": null,
+                "flagVAVR": null,
+                "consumoGeral": null,
+                "magazine": null,
+                "delivery": null,
+                "vestuario": null,
+                "esportes": null,
+                "farmacia": null,
+                "casa": null,
+                "cosmeticos": null,
+                "eletronicos": null,
+                "mercados": null,
+                "pets": null,
+                "lazer": null
+            },
+            {
+                "id": "0dd5949f2f934b03a01e98a4a4cf34c1",
+                "document": "07062261513",
+                "scoreV3": "678",
+                "personaBancarizada": "5",
+                "personaPresencaDigital": "6",
+                "personaBanco": "Grandes Bancos privados",
+                "personaCategoriaCartao": "Intermediário",
+                "flagVAVR": "1",
+                "consumoGeral": "73",
+                "magazine": null,
+                "delivery": "64",
+                "vestuario": null,
+                "esportes": "95",
+                "farmacia": null,
+                "casa": null,
+                "cosmeticos": null,
+                "eletronicos": null,
+                "mercados": null,
+                "pets": null,
+                "lazer": null
+            },
+            {
+                "id": "0347170b87d84b77ae0b8eaa5a9842f3",
+                "document": "39600383804",
+                "scoreV3": "720",
+                "personaBancarizada": "5",
+                "personaPresencaDigital": "6",
+                "personaBanco": "Bancos Digitais",
+                "personaCategoriaCartao": "Intermediário",
+                "flagVAVR": "1",
+                "consumoGeral": "89",
+                "magazine": "84",
+                "delivery": "50",
+                "vestuario": "58",
+                "esportes": "49",
+                "farmacia": "47",
+                "casa": null,
+                "cosmeticos": "74",
+                "eletronicos": null,
+                "mercados": "4",
+                "pets": null,
+                "lazer": null
+            },
+            {
+                "id": "6510b1f140d74d269ed2bd3a866952f2",
+                "document": "48993626847",
+                "scoreV3": "387",
+                "personaBancarizada": "5",
+                "personaPresencaDigital": "6",
+                "personaBanco": "Bancos Digitais",
+                "personaCategoriaCartao": "Entrada",
+                "flagVAVR": "1",
+                "consumoGeral": "49",
+                "magazine": null,
+                "delivery": "18",
+                "vestuario": "69",
+                "esportes": null,
+                "farmacia": null,
+                "casa": null,
+                "cosmeticos": null,
+                "eletronicos": null,
+                "mercados": null,
+                "pets": null,
+                "lazer": null
+            },
+            {
+                "id": "59855f3ad307457ab9ea2592e70747c3",
+                "document": "37656250867",
+                "scoreV3": "499",
+                "personaBancarizada": "4",
+                "personaPresencaDigital": "6",
+                "personaBanco": "Grandes Bancos públicos",
+                "personaCategoriaCartao": "Entrada",
+                "flagVAVR": "0",
+                "consumoGeral": null,
+                "magazine": null,
+                "delivery": null,
+                "vestuario": null,
+                "esportes": null,
+                "farmacia": null,
+                "casa": null,
+                "cosmeticos": null,
+                "eletronicos": null,
+                "mercados": null,
+                "pets": null,
+                "lazer": null
+            },
+            {
+                "id": "8fafbedeee3d4d67b591da009518c3dd",
+                "document": "41135581835",
+                "scoreV3": "384",
+                "personaBancarizada": "5",
+                "personaPresencaDigital": "3",
+                "personaBanco": "Outros",
+                "personaCategoriaCartao": "Entrada",
+                "flagVAVR": "0",
+                "consumoGeral": "22",
+                "magazine": null,
+                "delivery": null,
+                "vestuario": null,
+                "esportes": null,
+                "farmacia": null,
+                "casa": null,
+                "cosmeticos": "29",
+                "eletronicos": null,
+                "mercados": null,
+                "pets": null,
+                "lazer": null
+            },
+            {
+                "id": "11a909aa29a0480aa5e352cc500217b4",
+                "document": "50523433883",
+                "scoreV3": "346",
+                "personaBancarizada": "3",
+                "personaPresencaDigital": "2",
+                "personaBanco": "Outros",
+                "personaCategoriaCartao": "Entrada",
+                "flagVAVR": "0",
+                "consumoGeral": "33",
+                "magazine": null,
+                "delivery": "55",
+                "vestuario": null,
+                "esportes": null,
+                "farmacia": null,
+                "casa": null,
+                "cosmeticos": null,
+                "eletronicos": null,
+                "mercados": null,
+                "pets": null,
+                "lazer": null
+            },
+            {
+                "id": "398683ee14264769a18ef4f54e5a197f",
+                "document": "44365525867",
+                "scoreV3": "803",
+                "personaBancarizada": "3",
+                "personaPresencaDigital": "6",
+                "personaBanco": "Bancos Digitais",
+                "personaCategoriaCartao": "Entrada",
+                "flagVAVR": "0",
+                "consumoGeral": "31",
+                "magazine": null,
+                "delivery": "1",
+                "vestuario": null,
+                "esportes": "20",
+                "farmacia": "22",
+                "casa": null,
+                "cosmeticos": null,
+                "eletronicos": null,
+                "mercados": null,
+                "pets": null,
+                "lazer": null
+            },
+            {
+                "id": "eba4288d53724a7d8e4de4e286d46948",
+                "document": "46728004823",
+                "scoreV3": "643",
+                "personaBancarizada": "5",
+                "personaPresencaDigital": "5",
+                "personaBanco": "Grandes Bancos privados",
+                "personaCategoriaCartao": "Entrada",
+                "flagVAVR": "0",
+                "consumoGeral": "83",
+                "magazine": "78",
+                "delivery": null,
+                "vestuario": null,
+                "esportes": null,
+                "farmacia": null,
+                "casa": "61",
+                "cosmeticos": null,
+                "eletronicos": null,
+                "mercados": null,
+                "pets": null,
+                "lazer": null
+            }
         ];
-        
+
         let filteredData = [...data];
-        
+
         function formatCPF(cpf) {
             // Mascara o CPF mostrando apenas os primeiros 3 dígitos e os últimos 2
             // Exemplo: 123.***.***-45
             return cpf.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.***.***-$4');
         }
-        
+
         function getScoreClass(value, isConsumption = false) {
             const num = parseInt(value);
             if (isConsumption) {
@@ -306,75 +617,75 @@
                 return 'score-low';
             }
         }
-        
+
         function renderTable() {
             const tbody = document.getElementById('tableBody');
             tbody.innerHTML = '';
-            
+
             if (filteredData.length === 0) {
                 tbody.innerHTML = '<tr><td colspan="20" class="no-results">🔍 Nenhum resultado encontrado</td></tr>';
                 return;
             }
-            
+
             filteredData.forEach(row => {
                 const tr = document.createElement('tr');
                 tr.innerHTML = `
-                    <td><div class="document-id">${row.id.substring(0, 8)}...</div></td>
-                    <td><div class="cpf">${formatCPF(row.document)}</div></td>
-                    <td class="${getScoreClass(row.scoreV3)}">${row.scoreV3}</td>
-                    <td>${row.personaBancarizada}</td>
-                    <td>${row.personaPresencaDigital}</td>
-                    <td>${row.personaBanco}</td>
-                    <td>${row.personaCategoriaCartao}</td>
-                    <td>${row.flagVAVR}</td>
-                    <td class="${getScoreClass(row.consumoGeral, true)}">${row.consumoGeral}</td>
-                    <td class="${getScoreClass(row.magazine, true)}">${row.magazine}</td>
-                    <td class="${getScoreClass(row.delivery, true)}">${row.delivery}</td>
-                    <td class="${getScoreClass(row.vestuario, true)}">${row.vestuario}</td>
-                    <td class="${getScoreClass(row.esportes, true)}">${row.esportes}</td>
-                    <td class="${getScoreClass(row.farmacia, true)}">${row.farmacia}</td>
-                    <td class="${getScoreClass(row.casa, true)}">${row.casa}</td>
-                    <td class="${getScoreClass(row.cosmeticos, true)}">${row.cosmeticos}</td>
-                    <td class="${getScoreClass(row.eletronicos, true)}">${row.eletronicos}</td>
-                    <td class="${getScoreClass(row.mercados, true)}">${row.mercados}</td>
-                    <td class="${getScoreClass(row.pets, true)}">${row.pets}</td>
-                    <td class="${getScoreClass(row.lazer, true)}">${row.lazer}</td>
-                `;
+        <td><div class="document-id">${row.id.substring(0, 8)}...</div></td>
+        <td><div class="cpf">${formatCPF(row.document)}</div></td>
+        <td class="${getScoreClass(row.scoreV3)}">${row.scoreV3}</td>
+        <td>${row.personaBancarizada || '-'}</td>
+        <td>${row.personaPresencaDigital || '-'}</td>
+        <td>${row.personaBanco || '-'}</td>
+        <td>${row.personaCategoriaCartao || '-'}</td>
+        <td>${row.flagVAVR || '-'}</td>
+        <td class="${row.consumoGeral ? getScoreClass(row.consumoGeral, true) : ''}">${row.consumoGeral || '-'}</td>
+        <td class="${row.magazine ? getScoreClass(row.magazine, true) : ''}">${row.magazine || '-'}</td>
+        <td class="${row.delivery ? getScoreClass(row.delivery, true) : ''}">${row.delivery || '-'}</td>
+        <td class="${row.vestuario ? getScoreClass(row.vestuario, true) : ''}">${row.vestuario || '-'}</td>
+        <td class="${row.esportes ? getScoreClass(row.esportes, true) : ''}">${row.esportes || '-'}</td>
+        <td class="${row.farmacia ? getScoreClass(row.farmacia, true) : ''}">${row.farmacia || '-'}</td>
+        <td class="${row.casa ? getScoreClass(row.casa, true) : ''}">${row.casa || '-'}</td>
+        <td class="${row.cosmeticos ? getScoreClass(row.cosmeticos, true) : ''}">${row.cosmeticos || '-'}</td>
+        <td class="${row.eletronicos ? getScoreClass(row.eletronicos, true) : ''}">${row.eletronicos || '-'}</td>
+        <td class="${row.mercados ? getScoreClass(row.mercados, true) : ''}">${row.mercados || '-'}</td>
+        <td class="${row.pets ? getScoreClass(row.pets, true) : ''}">${row.pets || '-'}</td>
+        <td class="${row.lazer ? getScoreClass(row.lazer, true) : ''}">${row.lazer || '-'}</td>
+    `;
                 tbody.appendChild(tr);
             });
-            
+
             document.getElementById('visible-records').textContent = filteredData.length;
         }
-        
+
         function filterData() {
             const searchTerm = document.getElementById('searchBox').value.toLowerCase();
-            
+
             if (!searchTerm) {
                 filteredData = [...data];
             } else {
                 filteredData = data.filter(row => {
-                    return Object.values(row).some(value => 
+                    return Object.values(row).some(value =>
                         value.toString().toLowerCase().includes(searchTerm)
                     );
                 });
             }
-            
+
             renderTable();
         }
-        
+
         function downloadCSV() {
             try {
                 // Gerar CSV dinamicamente a partir dos dados
                 const headers = [
-                    'id', 'document', 'scoreV3', 'personaBancarizada', 'personaPresencaDigital', 
-                    'personaBanco', 'personaCategoriaCartao', 'flagVAVR', 'consumoGeral', 
-                    'magazine', 'delivery', 'vestuario', 'esportes', 'farmacia', 'casa', 
+                    'id', 'document', 'scoreV3', 'personaBancarizada', 'personaPresencaDigital',
+                    'personaBanco', 'personaCategoriaCartao', 'flagVAVR', 'consumoGeral',
+                    'magazine', 'delivery', 'vestuario', 'esportes', 'farmacia', 'casa',
                     'cosmeticos', 'eletronicos', 'mercados', 'pets', 'lazer'
                 ];
-                
+
                 // Criar cabeçalho
                 let csvContent = headers.join(',') + '\n';
-                
+
                 // Adicionar dados linha por linha
                 data.forEach(row => {
                     const rowData = [
@@ -401,19 +712,19 @@
                     ];
                     csvContent += rowData.join(',') + '\n';
                 });
-                
+
                 // Criar e baixar o arquivo
                 const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
                 const url = window.URL.createObjectURL(blob);
                 const link = document.createElement('a');
-                
+
                 link.href = url;
                 link.download = 'credit_pro_scores_complete.csv';
                 link.click();
-                
+
                 // Limpar o URL
                 window.URL.revokeObjectURL(url);
-                
+
                 // Feedback visual
                 const btn = document.querySelector('.download-btn');
                 const originalText = btn.textContent;
@@ -421,18 +732,19 @@
                 setTimeout(() => {
                     btn.textContent = originalText;
                 }, 2000);
-                
+
             } catch (error) {
                 console.error('Erro ao baixar CSV:', error);
                 alert('Erro ao gerar o arquivo CSV. Tente novamente.');
             }
         }
-        
+
         // Event listeners
         document.getElementById('searchBox').addEventListener('input', filterData);
-        
+
         // Initial render
         renderTable();
     </script>
 </body>
+
 </html>
