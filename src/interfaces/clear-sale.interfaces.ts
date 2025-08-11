@@ -29,6 +29,7 @@ export interface CreditScoreData {
 export interface ReportResponse {
   html: string;
   filename: string;
+  jsonFilename: string;
   cpfsProcessed: number;
   cpfsWithData: number;
 }

@@ -7,6 +7,8 @@ import * as path from 'path';
 export class ReportService {
   
   generateHtml(data: CreditScoreData[]): string {
+    console.log(`Gerando HTML para ${data.length} registros...`);
+    
     const formatCPF = (cpf: string) => {
       return cpf.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.***.***-$4');
     };
@@ -25,32 +27,49 @@ export class ReportService {
       }
     };
 
-    const tableRows = data.map(row => `
-      <tr>
-        <td><div class="document-id">${row.id.substring(0, 8)}...</div></td>
-        <td><div class="cpf">${formatCPF(row.document)}</div></td>
-        <td class="${getScoreClass(row.scoreV3)}">${row.scoreV3}</td>
-        <td>${row.personaBancarizada || '-'}</td>
-        <td>${row.personaPresencaDigital || '-'}</td>
-        <td>${row.personaBanco || '-'}</td>
-        <td>${row.personaCategoriaCartao || '-'}</td>
-        <td>${row.flagVAVR || '-'}</td>
-        <td class="${row.consumoGeral ? getScoreClass(row.consumoGeral, true) : ''}">${row.consumoGeral || '-'}</td>
-        <td class="${row.magazine ? getScoreClass(row.magazine, true) : ''}">${row.magazine || '-'}</td>
-        <td class="${row.delivery ? getScoreClass(row.delivery, true) : ''}">${row.delivery || '-'}</td>
-        <td class="${row.vestuario ? getScoreClass(row.vestuario, true) : ''}">${row.vestuario || '-'}</td>
-        <td class="${row.esportes ? getScoreClass(row.esportes, true) : ''}">${row.esportes || '-'}</td>
-        <td class="${row.farmacia ? getScoreClass(row.farmacia, true) : ''}">${row.farmacia || '-'}</td>
-        <td class="${row.casa ? getScoreClass(row.casa, true) : ''}">${row.casa || '-'}</td>
-        <td class="${row.cosmeticos ? getScoreClass(row.cosmeticos, true) : ''}">${row.cosmeticos || '-'}</td>
-        <td class="${row.eletronicos ? getScoreClass(row.eletronicos, true) : ''}">${row.eletronicos || '-'}</td>
-        <td class="${row.mercados ? getScoreClass(row.mercados, true) : ''}">${row.mercados || '-'}</td>
-        <td class="${row.pets ? getScoreClass(row.pets, true) : ''}">${row.pets || '-'}</td>
-        <td class="${row.lazer ? getScoreClass(row.lazer, true) : ''}">${row.lazer || '-'}</td>
-      </tr>
-    `).join('');
+    // Para grandes volumes, processar em chunks para evitar sobrecarga de memória
+    const chunkSize = 100;
+    const chunks = this.chunkArray(data, chunkSize);
+    let tableRows = '';
+    
+    for (let i = 0; i < chunks.length; i++) {
+      const chunk = chunks[i];
+      console.log(`Processando chunk ${i + 1}/${chunks.length} (${chunk.length} registros)`);
+      
+      const chunkRows = chunk.map(row => `
+        <tr>
+          <td><div class="document-id">${row.id.substring(0, 8)}...</div></td>
+          <td><div class="cpf">${formatCPF(row.document)}</div></td>
+          <td class="${getScoreClass(row.scoreV3)}">${row.scoreV3}</td>
+          <td>${row.personaBancarizada || '-'}</td>
+          <td>${row.personaPresencaDigital || '-'}</td>
+          <td>${row.personaBanco || '-'}</td>
+          <td>${row.personaCategoriaCartao || '-'}</td>
+          <td>${row.flagVAVR || '-'}</td>
+          <td class="${row.consumoGeral ? getScoreClass(row.consumoGeral, true) : ''}">${row.consumoGeral || '-'}</td>
+          <td class="${row.magazine ? getScoreClass(row.magazine, true) : ''}">${row.magazine || '-'}</td>
+          <td class="${row.delivery ? getScoreClass(row.delivery, true) : ''}">${row.delivery || '-'}</td>
+          <td class="${row.vestuario ? getScoreClass(row.vestuario, true) : ''}">${row.vestuario || '-'}</td>
+          <td class="${row.esportes ? getScoreClass(row.esportes, true) : ''}">${row.esportes || '-'}</td>
+          <td class="${row.farmacia ? getScoreClass(row.farmacia, true) : ''}">${row.farmacia || '-'}</td>
+          <td class="${row.casa ? getScoreClass(row.casa, true) : ''}">${row.casa || '-'}</td>
+          <td class="${row.cosmeticos ? getScoreClass(row.cosmeticos, true) : ''}">${row.cosmeticos || '-'}</td>
+          <td class="${row.eletronicos ? getScoreClass(row.eletronicos, true) : ''}">${row.eletronicos || '-'}</td>
+          <td class="${row.mercados ? getScoreClass(row.mercados, true) : ''}">${row.mercados || '-'}</td>
+          <td class="${row.pets ? getScoreClass(row.pets, true) : ''}">${row.pets || '-'}</td>
+          <td class="${row.lazer ? getScoreClass(row.lazer, true) : ''}">${row.lazer || '-'}</td>
+        </tr>
+      `).join('');
+      
+      tableRows += chunkRows;
+    }
 
-    const dataJson = JSON.stringify(data, null, 12);
+    // Para grandes datasets, usar JSON compacto para reduzir tamanho
+    const dataJson = data.length > 100 
+      ? JSON.stringify(data) // Sem indentação para economizar espaço
+      : JSON.stringify(data, null, 2); // Com indentação para datasets pequenos
+    
+    console.log(`HTML gerado com sucesso. Tamanho estimado: ${Math.round((tableRows.length + dataJson.length) / 1024)} KB`);
 
     return `<!DOCTYPE html>
 <html lang="pt-BR">
@@ -260,6 +279,73 @@ export class ReportService {
             font-size: 1.2rem;
         }
 
+        .pagination-container {
+            background: white;
+            padding: 20px;
+            margin-top: 0;
+            border-top: 1px solid #e9ecef;
+            display: flex;
+            justify-content: center;
+        }
+
+        .pagination {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .page-btn {
+            background: white;
+            border: 1px solid #d1ecf1;
+            color: #495057;
+            padding: 8px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.2s;
+            min-width: 40px;
+        }
+
+        .page-btn:hover:not(:disabled) {
+            background: #667eea;
+            color: white;
+            border-color: #667eea;
+        }
+
+        .page-btn.active {
+            background: #667eea;
+            color: white;
+            border-color: #667eea;
+            font-weight: bold;
+        }
+
+        .page-btn:disabled {
+            background: #f8f9fa;
+            color: #6c757d;
+            cursor: not-allowed;
+            opacity: 0.5;
+        }
+
+        .page-dots {
+            color: #6c757d;
+            padding: 0 4px;
+            font-weight: bold;
+        }
+
+        .page-info {
+            background: #f8f9fa;
+            color: #495057;
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 500;
+            margin-left: 16px;
+            border: 1px solid #e9ecef;
+        }
+
         @media (max-width: 768px) {
             .controls {
                 flex-direction: column;
@@ -274,6 +360,22 @@ export class ReportService {
             .stats {
                 flex-direction: column;
                 gap: 20px;
+            }
+
+            .pagination {
+                gap: 4px;
+            }
+
+            .page-btn {
+                padding: 6px 8px;
+                font-size: 12px;
+                min-width: 32px;
+            }
+
+            .page-info {
+                margin-left: 8px;
+                font-size: 12px;
+                padding: 6px 12px;
             }
         }
     </style>
@@ -334,16 +436,20 @@ export class ReportService {
                     </tr>
                 </thead>
                 <tbody id="tableBody">
-                    ${tableRows}
                 </tbody>
             </table>
+        </div>
+        
+        <div class="pagination-container">
+            <div id="pagination" class="pagination"></div>
         </div>
     </div>
 
     <script>
         const data = ${dataJson};
-
         let filteredData = [...data];
+        let currentPage = 1;
+        const recordsPerPage = 10;
 
         function formatCPF(cpf) {
             return cpf.replace(/(\\d{3})(\\d{3})(\\d{3})(\\d{2})/, '$1.***.***-$4');
@@ -368,10 +474,17 @@ export class ReportService {
 
             if (filteredData.length === 0) {
                 tbody.innerHTML = '<tr><td colspan="20" class="no-results">🔍 Nenhum resultado encontrado</td></tr>';
+                updatePagination();
                 return;
             }
 
-            filteredData.forEach(row => {
+            const totalPages = Math.ceil(filteredData.length / recordsPerPage);
+            const startIndex = (currentPage - 1) * recordsPerPage;
+            const endIndex = Math.min(startIndex + recordsPerPage, filteredData.length);
+            
+            const pageData = filteredData.slice(startIndex, endIndex);
+
+            pageData.forEach(row => {
                 const tr = document.createElement('tr');
                 tr.innerHTML = \`
         <td><div class="document-id">\${row.id.substring(0, 8)}...</div></td>
@@ -398,7 +511,94 @@ export class ReportService {
                 tbody.appendChild(tr);
             });
 
-            document.getElementById('visible-records').textContent = filteredData.length;
+            document.getElementById('visible-records').textContent = \`\${startIndex + 1}-\${endIndex}\`;
+            document.getElementById('total-records').textContent = filteredData.length;
+            updatePagination();
+        }
+
+        function updatePagination() {
+            const totalPages = Math.ceil(filteredData.length / recordsPerPage);
+            const pagination = document.getElementById('pagination');
+            
+            if (totalPages <= 1) {
+                pagination.style.display = 'none';
+                return;
+            }
+            
+            pagination.style.display = 'flex';
+            pagination.innerHTML = '';
+
+            // Botão Anterior
+            const prevBtn = document.createElement('button');
+            prevBtn.textContent = '← Anterior';
+            prevBtn.className = 'page-btn';
+            prevBtn.disabled = currentPage === 1;
+            prevBtn.onclick = () => changePage(currentPage - 1);
+            pagination.appendChild(prevBtn);
+
+            // Números das páginas
+            const startPage = Math.max(1, currentPage - 2);
+            const endPage = Math.min(totalPages, currentPage + 2);
+
+            if (startPage > 1) {
+                const firstBtn = document.createElement('button');
+                firstBtn.textContent = '1';
+                firstBtn.className = 'page-btn';
+                firstBtn.onclick = () => changePage(1);
+                pagination.appendChild(firstBtn);
+                
+                if (startPage > 2) {
+                    const dots = document.createElement('span');
+                    dots.textContent = '...';
+                    dots.className = 'page-dots';
+                    pagination.appendChild(dots);
+                }
+            }
+
+            for (let i = startPage; i <= endPage; i++) {
+                const pageBtn = document.createElement('button');
+                pageBtn.textContent = i;
+                pageBtn.className = 'page-btn' + (i === currentPage ? ' active' : '');
+                pageBtn.onclick = () => changePage(i);
+                pagination.appendChild(pageBtn);
+            }
+
+            if (endPage < totalPages) {
+                if (endPage < totalPages - 1) {
+                    const dots = document.createElement('span');
+                    dots.textContent = '...';
+                    dots.className = 'page-dots';
+                    pagination.appendChild(dots);
+                }
+                
+                const lastBtn = document.createElement('button');
+                lastBtn.textContent = totalPages;
+                lastBtn.className = 'page-btn';
+                lastBtn.onclick = () => changePage(totalPages);
+                pagination.appendChild(lastBtn);
+            }
+
+            // Botão Próximo
+            const nextBtn = document.createElement('button');
+            nextBtn.textContent = 'Próximo →';
+            nextBtn.className = 'page-btn';
+            nextBtn.disabled = currentPage === totalPages;
+            nextBtn.onclick = () => changePage(currentPage + 1);
+            pagination.appendChild(nextBtn);
+
+            // Info da página
+            const pageInfo = document.createElement('div');
+            pageInfo.className = 'page-info';
+            pageInfo.innerHTML = \`Página \${currentPage} de \${totalPages}\`;
+            pagination.appendChild(pageInfo);
+        }
+
+        function changePage(page) {
+            const totalPages = Math.ceil(filteredData.length / recordsPerPage);
+            if (page >= 1 && page <= totalPages) {
+                currentPage = page;
+                renderTable();
+            }
         }
 
         function filterData() {
@@ -414,6 +614,7 @@ export class ReportService {
                 });
             }
 
+            currentPage = 1; // Reset para primeira página após filtrar
             renderTable();
         }
 
@@ -499,15 +700,45 @@ export class ReportService {
     return filename;
   }
 
+  async saveJsonData(data: CreditScoreData[], htmlFilename: string): Promise<string> {
+    const jsonFilename = htmlFilename.replace('.html', '.json');
+    const filepath = path.join(process.cwd(), 'reports', jsonFilename);
+    
+    const jsonData = {
+      metadata: {
+        generatedAt: new Date().toISOString(),
+        totalRecords: data.length,
+        filename: htmlFilename,
+        version: '1.0'
+      },
+      data: data
+    };
+
+    fs.writeFileSync(filepath, JSON.stringify(jsonData, null, 2), 'utf8');
+    console.log(`JSON salvo: ${jsonFilename} (${Math.round(fs.statSync(filepath).size / 1024)} KB)`);
+    
+    return jsonFilename;
+  }
+
   async generateReport(cpfData: CreditScoreData[]): Promise<ReportResponse> {
     const html = this.generateHtml(cpfData);
-    const filename = await this.saveHtmlReport(html);
+    const htmlFilename = await this.saveHtmlReport(html);
+    const jsonFilename = await this.saveJsonData(cpfData, htmlFilename);
     
     return {
       html,
-      filename,
+      filename: htmlFilename,
+      jsonFilename,
       cpfsProcessed: cpfData.length,
       cpfsWithData: cpfData.length
     };
+  }
+
+  private chunkArray<T>(array: T[], size: number): T[][] {
+    const chunks: T[][] = [];
+    for (let i = 0; i < array.length; i += size) {
+      chunks.push(array.slice(i, i + size));
+    }
+    return chunks;
   }
 }

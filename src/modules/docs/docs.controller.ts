@@ -247,8 +247,12 @@ export class DocsController {
         <div class="code">{
   "html": "&lt;!DOCTYPE html&gt;...&lt;/html&gt;",
   "filename": "relatorio-credit-pro-2025-08-11T15-30-45.html",
+  "jsonFilename": "relatorio-credit-pro-2025-08-11T15-30-45.json",
   "cpfsProcessed": 3,
-  "cpfsWithData": 2
+  "cpfsWithData": 2,
+  "processingTime": 45,
+  "successRate": 67,
+  "timestamp": "2025-08-11T15:30:45.123Z"
 }</div>
 
         <table>
@@ -265,7 +269,11 @@ export class DocsController {
                 </tr>
                 <tr>
                     <td>filename</td>
-                    <td>Nome do arquivo salvo na pasta 'reports/' do servidor</td>
+                    <td>Nome do arquivo HTML salvo na pasta 'reports/' do servidor</td>
+                </tr>
+                <tr>
+                    <td>jsonFilename</td>
+                    <td>Nome do arquivo JSON com todas as respostas da Clear Sale</td>
                 </tr>
                 <tr>
                     <td>cpfsProcessed</td>
@@ -274,6 +282,18 @@ export class DocsController {
                 <tr>
                     <td>cpfsWithData</td>
                     <td>Número de CPFs que retornaram dados válidos</td>
+                </tr>
+                <tr>
+                    <td>processingTime</td>
+                    <td>Tempo total de processamento em segundos</td>
+                </tr>
+                <tr>
+                    <td>successRate</td>
+                    <td>Taxa de sucesso em porcentagem</td>
+                </tr>
+                <tr>
+                    <td>timestamp</td>
+                    <td>Data e hora de geração do relatório</td>
                 </tr>
             </tbody>
         </table>
@@ -327,7 +347,9 @@ else:
             • Design moderno e responsivo<br>
             • Cores destacando scores altos/baixos<br>
             • Busca em tempo real<br>
-            • Download CSV integrado
+            • Download CSV integrado<br>
+            • <strong>Paginação inteligente:</strong> 10 registros por página<br>
+            • Navegação otimizada para grandes volumes
         </div>
 
         <div class="info">
@@ -337,6 +359,14 @@ else:
             • <strong>Perfil:</strong> Banco, Categoria do Cartão<br>
             • <strong>VA/VR:</strong> Flag de Vale Alimentação/Refeição<br>
             • <strong>Consumo:</strong> Potencial em 11 categorias diferentes
+        </div>
+
+        <div class="info">
+            <strong>📁 Arquivos Gerados:</strong><br>
+            • <strong>HTML:</strong> Relatório visual interativo com paginação<br>
+            • <strong>JSON:</strong> Todas as respostas completas da Clear Sale<br>
+            • Ambos salvos na pasta 'reports/' com mesmo nome<br>
+            • Ideal para análise posterior e integração
         </div>
     </div>
 
@@ -382,16 +412,6 @@ else:
         <p><strong>Perfeitamente!</strong> O HTML gerado é totalmente responsivo e funciona em qualquer dispositivo.</p>
     </div>
 
-    <div class="section">
-        <h2>🆘 Suporte</h2>
-        <p>Se você tiver problemas ou dúvidas:</p>
-        <ul>
-            <li>📧 Entre em contato com a equipe de TI</li>
-            <li>🔧 Verifique se a API está rodando em http://localhost:3000</li>
-            <li>📋 Consulte os logs do servidor para erros detalhados</li>
-            <li>🌐 Teste primeiro no Swagger: <a href="/api">/api</a></li>
-        </ul>
-    </div>
 </body>
 </html>`;
 

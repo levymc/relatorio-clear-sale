@@ -112,16 +112,72 @@ export class ClearSaleService {
   async fetchMultipleCpfsData(cpfs: string[]): Promise<CreditScoreData[]> {
     const token = await this.getCreditRiskAuthToken();
     const results: CreditScoreData[] = [];
-
-    for (const cpf of cpfs) {
-      try {
-        const data = await this.fetchCpfCreditData(token.token, cpf);
-        results.push(data);
-      } catch (error) {
-        console.error(`Erro ao processar CPF ${cpf}:`, error);
+    
+    console.log(`Iniciando processamento de ${cpfs.length} CPFs...`);
+    
+    // Processar em lotes de 10 CPFs simultaneamente para não sobrecarregar a API
+    const batchSize = 10;
+    const batches = this.chunkArray(cpfs, batchSize);
+    
+    for (let i = 0; i < batches.length; i++) {
+      const batch = batches[i];
+      const batchNumber = i + 1;
+      const totalBatches = batches.length;
+      
+      console.log(`Processando lote ${batchNumber}/${totalBatches} (${batch.length} CPFs)`);
+      
+      // Processar CPFs do lote em paralelo
+      const batchPromises = batch.map(cpf => 
+        this.processCpfWithRetry(token.token, cpf, 3)
+      );
+      
+      const batchResults = await Promise.allSettled(batchPromises);
+      
+      // Coletar resultados bem-sucedidos
+      batchResults.forEach((result, index) => {
+        if (result.status === 'fulfilled' && result.value) {
+          results.push(result.value);
+        } else if (result.status === 'rejected') {
+          console.error(`Erro ao processar CPF ${batch[index]}:`, result.reason);
+        }
+      });
+      
+      // Pequena pausa entre lotes para não saturar a API
+      if (i < batches.length - 1) {
+        await this.sleep(500); // 500ms entre lotes
       }
     }
-
+    
+    console.log(`Processamento concluído: ${results.length}/${cpfs.length} CPFs com dados válidos`);
     return results;
+  }
+
+  private async processCpfWithRetry(token: string, cpf: string, maxRetries: number): Promise<CreditScoreData | null> {
+    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+      try {
+        return await this.fetchCpfCreditData(token, cpf);
+      } catch (error) {
+        console.error(`Tentativa ${attempt}/${maxRetries} falhou para CPF ${cpf}:`, error);
+        
+        if (attempt < maxRetries) {
+          // Esperar antes de tentar novamente (backoff exponencial)
+          const delay = Math.min(1000 * Math.pow(2, attempt - 1), 5000);
+          await this.sleep(delay);
+        }
+      }
+    }
+    return null;
+  }
+
+  private chunkArray<T>(array: T[], size: number): T[][] {
+    const chunks: T[][] = [];
+    for (let i = 0; i < array.length; i += size) {
+      chunks.push(array.slice(i, i + size));
+    }
+    return chunks;
+  }
+
+  private sleep(ms: number): Promise<void> {
+    return new Promise(resolve => setTimeout(resolve, ms));
   }
 }
