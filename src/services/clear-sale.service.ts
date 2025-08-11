@@ -53,8 +53,8 @@ export class ClearSaleService {
     };
 
     return {
-      id: apiData.id,
-      document: apiData.document,
+      id: apiData.id || 'N/A',
+      document: apiData.document || null,
       scoreV3: findScore('Score v3'),
       personaBancarizada: findScore('Persona Bancarizada'),
       personaPresencaDigital: findScore('Persona Presenca Digital'),

@@ -10,6 +10,7 @@ export class ReportService {
     console.log(`Gerando HTML para ${data.length} registros...`);
     
     const formatCPF = (cpf: string) => {
+      if (!cpf) return 'N/A';
       return cpf.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.***.***-$4');
     };
 
@@ -38,8 +39,7 @@ export class ReportService {
       
       const chunkRows = chunk.map(row => `
         <tr>
-          <td><div class="document-id">${row.id.substring(0, 8)}...</div></td>
-          <td><div class="cpf">${formatCPF(row.document)}</div></td>
+          <td><div class="cpf">${formatCPF(row.document || '')}</div></td>
           <td class="${getScoreClass(row.scoreV3)}">${row.scoreV3}</td>
           <td>${row.personaBancarizada || '-'}</td>
           <td>${row.personaPresencaDigital || '-'}</td>
