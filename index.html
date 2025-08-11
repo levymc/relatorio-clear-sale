@@ -1,0 +1,613 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Análise dos Scores por Documento</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+
+        .container {
+            max-width: 100%;
+            margin: 0 auto;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            margin: 0;
+            font-size: 2.5rem;
+            font-weight: 300;
+        }
+
+        .header p {
+            margin: 10px 0 0 0;
+            opacity: 0.9;
+            font-size: 1.1rem;
+        }
+
+        .stats {
+            display: flex;
+            justify-content: space-around;
+            background: #f8f9fa;
+            padding: 20px;
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        .stat {
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #667eea;
+            display: block;
+        }
+
+        .stat-label {
+            color: #6c757d;
+            font-size: 0.9rem;
+            margin-top: 5px;
+        }
+
+        .controls {
+            padding: 20px;
+            background: #f8f9fa;
+            border-bottom: 1px solid #e9ecef;
+            display: flex;
+            gap: 20px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .search-box {
+            flex: 1;
+            min-width: 300px;
+            padding: 12px;
+            border: 2px solid #e9ecef;
+            border-radius: 6px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+
+        .search-box:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .download-btn {
+            background: #28a745;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 500;
+            transition: all 0.3s;
+        }
+
+        .download-btn:hover {
+            background: #218838;
+            transform: translateY(-2px);
+        }
+
+        .table-container {
+            overflow-x: auto;
+            max-height: 600px;
+            overflow-y: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+        }
+
+        th {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 15px 12px;
+            text-align: left;
+            font-weight: 600;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        th.id-col {
+            min-width: 80px;
+        }
+
+        th.document-col {
+            min-width: 120px;
+        }
+
+        th.score-col {
+            min-width: 80px;
+        }
+
+        th.persona-col {
+            min-width: 100px;
+        }
+
+        th.consumption-col {
+            min-width: 120px;
+        }
+
+        td {
+            padding: 12px;
+            border-bottom: 1px solid #e9ecef;
+            transition: background-color 0.2s;
+        }
+
+        tr:hover {
+            background-color: #f8f9fa;
+        }
+
+        .score-high {
+            background: linear-gradient(135deg, #d4edda, #c3e6cb);
+            color: #155724;
+            font-weight: bold;
+        }
+
+        .score-medium {
+            background: linear-gradient(135deg, #fff3cd, #ffeaa7);
+            color: #856404;
+            font-weight: bold;
+        }
+
+        .score-low {
+            background: linear-gradient(135deg, #f8d7da, #f5c6cb);
+            color: #721c24;
+            font-weight: bold;
+        }
+
+        .document-id {
+            font-family: 'Courier New', monospace;
+            background: #f8f9fa;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.9rem;
+        }
+
+        .cpf {
+            font-family: 'Courier New', monospace;
+            font-weight: bold;
+            color: #495057;
+        }
+
+        .timestamp {
+            font-size: 0.8rem;
+            color: #6c757d;
+        }
+
+        .no-results {
+            text-align: center;
+            padding: 50px;
+            color: #6c757d;
+            font-size: 1.2rem;
+        }
+
+        .pagination-container {
+            background: white;
+            padding: 20px;
+            margin-top: 0;
+            border-top: 1px solid #e9ecef;
+            display: flex;
+            justify-content: center;
+        }
+
+        .pagination {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .page-btn {
+            background: white;
+            border: 1px solid #d1ecf1;
+            color: #495057;
+            padding: 8px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.2s;
+            min-width: 40px;
+        }
+
+        .page-btn:hover:not(:disabled) {
+            background: #667eea;
+            color: white;
+            border-color: #667eea;
+        }
+
+        .page-btn.active {
+            background: #667eea;
+            color: white;
+            border-color: #667eea;
+            font-weight: bold;
+        }
+
+        .page-btn:disabled {
+            background: #f8f9fa;
+            color: #6c757d;
+            cursor: not-allowed;
+            opacity: 0.5;
+        }
+
+        .page-dots {
+            color: #6c757d;
+            padding: 0 4px;
+            font-weight: bold;
+        }
+
+        .page-info {
+            background: #f8f9fa;
+            color: #495057;
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 500;
+            margin-left: 16px;
+            border: 1px solid #e9ecef;
+        }
+
+        @media (max-width: 768px) {
+            .controls {
+                flex-direction: column;
+                gap: 10px;
+            }
+
+            .search-box {
+                min-width: auto;
+                width: 100%;
+            }
+
+            .stats {
+                flex-direction: column;
+                gap: 20px;
+            }
+
+            .pagination {
+                gap: 4px;
+            }
+
+            .page-btn {
+                padding: 6px 8px;
+                font-size: 12px;
+                min-width: 32px;
+            }
+
+            .page-info {
+                margin-left: 8px;
+                font-size: 12px;
+                padding: 6px 12px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📊 Análise Credit Pro</h1>
+            <p>Scores e Potenciais de Consumo por Cliente - Gerado em 11/08/2025, 16:37:34</p>
+        </div>
+
+        <div class="stats">
+            <div class="stat">
+                <span class="stat-number" id="total-records">200</span>
+                <div class="stat-label">Total de Registros</div>
+            </div>
+            <div class="stat">
+                <span class="stat-number" id="visible-records">200</span>
+                <div class="stat-label">Registros Visíveis</div>
+            </div>
+            <div class="stat">
+                <span class="stat-number">20</span>
+                <div class="stat-label">Campos por Registro</div>
+            </div>
+        </div>
+
+        <div class="controls">
+            <input type="text" class="search-box" id="searchBox"
+                placeholder="🔍 Pesquisar por ID, CPF ou qualquer valor...">
+            <button class="download-btn" onclick="downloadCSV()">📥 Baixar CSV</button>
+        </div>
+
+        <div class="table-container">
+            <table id="dataTable">
+                <thead>
+                    <tr>
+                        <th class="id-col">ID</th>
+                        <th class="document-col">CPF</th>
+                        <th class="score-col">Score v3</th>
+                        <th class="persona-col">Persona Bancarizada</th>
+                        <th class="persona-col">Presença Digital</th>
+                        <th class="persona-col">Banco</th>
+                        <th class="persona-col">Cat. Cartão</th>
+                        <th class="score-col">VA/VR</th>
+                        <th class="consumption-col">Consumo Geral</th>
+                        <th class="consumption-col">Magazine</th>
+                        <th class="consumption-col">Delivery</th>
+                        <th class="consumption-col">Vestuário</th>
+                        <th class="consumption-col">Esportes</th>
+                        <th class="consumption-col">Farmácia</th>
+                        <th class="consumption-col">Casa</th>
+                        <th class="consumption-col">Cosméticos</th>
+                        <th class="consumption-col">Eletrônicos</th>
+                        <th class="consumption-col">Mercados</th>
+                        <th class="consumption-col">Pets</th>
+                        <th class="consumption-col">Lazer</th>
+                    </tr>
+                </thead>
+                <tbody id="tableBody">
+                </tbody>
+            </table>
+        </div>
+        
+        <div class="pagination-container">
+            <div id="pagination" class="pagination"></div>
+        </div>
+    </div>
+
+    <script>
+        const data = [{"id":"10c8bda5684c40a8af85a60069ed5d8c","document":"14016806666","scoreV3":"537","personaBancarizada":"2","personaPresencaDigital":"2","personaBanco":"Desbancarizado","personaCategoriaCartao":"VAVR","flagVAVR":"1","consumoGeral":"56","magazine":null,"delivery":"77","vestuario":null,"esportes":null,"farmacia":null,"casa":null,"cosmeticos":null,"eletronicos":null,"mercados":null,"pets":null,"lazer":null},{"id":"091c305681dd492a9db25fb0bb32fdea","document":"37034737894","scoreV3":"582","personaBancarizada":"5","personaPresencaDigital":"6","personaBanco":"Grandes Bancos privados","personaCategoriaCartao":"Intermediário","flagVAVR":"0","consumoGeral":"53","magazine":"48","delivery":null,"vestuario":null,"esportes":"5","farmacia":null,"casa":null,"cosmeticos":null,"eletronicos":null,"mercados":null,"pets":null,"lazer":null},{"id":"143ccaddafed4a00b10a6797a1bf6feb","document":"32436417806","scoreV3":"885","personaBancarizada":"5","personaPresencaDigital":"6","personaBanco":"Grandes Bancos privados","personaCategoriaCartao":"Intermediário","flagVAVR":"0","consumoGeral":"87","magazine":"84","delivery":"78","vestuario":null,"esportes":null,"farmacia":"13","casa":null,"cosmeticos":null,"eletronicos":null,"mercados":null,"pets":null,"lazer":null},{"id":"39009e6b26c64292b9b783abd8dd17f3","document":"41519696833","scoreV3":"251","personaBancarizada":"0","personaPresencaDigital":"2","personaBanco":"Desbancarizado","personaCategoriaCartao":"Cartao nao mapeado","flagVAVR":"0","consumoGeral":"50","magazine":null,"delivery":"71","vestuario":null,"esportes":null,"farmacia":null,"casa":null,"cosmeticos":null,"eletronicos":null,"mercados":null,"pets":null,"lazer":null},{"id":"8c67cd33453a457b882009c6d5a130ec","document":"52574586832","scoreV3":"618","personaBancarizada":"5","personaPresencaDigital":"5","personaBanco":"Bancos Digitais","personaCategoriaCartao":"Entrada","flagVAVR":"0","consumoGeral":"61","magazine":"18","delivery":"58","vestuario":null,"esportes":"77","farmacia":null,"casa":null,"cosmeticos":null,"eletronicos":null,"mercados":null,"pets":null,"lazer":null},{"id":"77c56d08b5be4982938f749da0e08ea0","document":"54289485820","scoreV3":"303","personaBancarizada":"3","personaPresencaDigital":"6","personaBanco":"Outros","personaCategoriaCartao":"Entrada","flagVAVR":"0","consumoGeral":"6","magazine":null,"delivery":null,"vestuario":null,"esportes":null,"farmacia":null,"casa":null,"cosmeticos":null,"eletronicos":null,"mercados":null,"pets":null,"lazer":"17"},{"id":"cf279e48ed454e2a840054251babf561","document":"43431161820","scoreV3":"587","personaBancarizada":"5","personaPresencaDigital":"5","personaBanco":"Grandes Bancos privados","personaCategoriaCartao":"Intermediário","flagVAVR":"0","consumoGeral":"77","magazine":null,"delivery":"89","vestuario":null,"esportes":null,"farmacia":"58","casa":null,"cosmeticos":null,"eletronicos":null,"mercados":null,"pets":null,"lazer":null},{"id":"9d855866de2a479fa34e05759a5ddba8","document":"57263128802","scoreV3":"221","personaBancarizada":"0","personaPresencaDigital":"0","personaBanco":null,"personaCategoriaCartao":null,"flagVAVR":null,"consumoGeral":null,"magazine":null,"delivery":null,"vestuario":null,"esportes":null,"farmacia":null,"casa":null,"cosmeticos":null,"eletronicos":null,"mercados":null,"pets":null,"lazer":null},{"id":"5041160692e6450798d61edfcf299f74","document":"42500441814","scoreV3":"540","personaBancarizada":"5","personaPresencaDigital":"5","personaBanco":"Grandes Bancos públicos","personaCategoriaCartao":"Intermediário","flagVAVR":"0","consumoGeral":"30","magazine":null,"delivery":"50","vestuario":null,"esportes":null,"farmacia":null,"casa":null,"cosmeticos":null,"eletronicos":null,"mercados":null,"pets":null,"lazer":null},{"id":"7e5bee8f680c4360a94a21c7524f85c3","document":"48536276851","scoreV3":"302","personaBancarizada":"2","personaPresencaDigital":"6","personaBanco":"Bancos Digitais","personaCategoriaCartao":"Entrada","flagVAVR":"0","consumoGeral":"35","magazine":null,"delivery":"57","vestuario":null,"esportes":null,"farmacia":null,"casa":null,"cosmeticos":null,"eletronicos":null,"mercados":null,"pets":null,"lazer":null},{"id":"1050373e91b84be19ec6f14e4215a931","document":"19480176874","scoreV3":"543","personaBancarizada":"4","personaPresencaDigital":"4","personaBanco":"Grandes Bancos públicos","personaCategoriaCartao":"Entrada","flagVAVR":"0","consumoGeral":null,"magazine":null,"delivery":null,"vestuario":null,"esportes":null,"farmacia":null,"casa":null,"cosmeticos":null,"eletronicos":null,"mercados":null,"pets":null,"lazer":null},{"id":"b3ac693d73f04147b7c80725e11c8d8f","document":"41176700855","scoreV3":"567","personaBancarizada":"2","personaPresencaDigital":"2","personaBanco":"Outros","personaCategoriaCartao":"Entrada","flagVAVR":"0","consumoGeral":"44","magazine":null,"delivery":"66","vestuario":null,"esportes":null,"farmacia":null,"casa":null,"cosmeticos":null,"eletronicos":null,"mercados":null,"pets":null,"lazer":null},{"id":"3c1771f4fdb446ef9afd2442aab6de34","document":"13219971830","scoreV3":"491","personaBancarizada":"4","personaPresencaDigital":"5","personaBanco":"Outros","personaCategoriaCartao":"Entrada","flagVAVR":"0","consumoGeral":"36","magazine":null,"delivery":"2","vestuario":null,"esportes":null,"farmacia":null,"casa":"33","cosmeticos":null,"eletronicos":null,"mercados":null,"pets":null,"lazer":null},{"id":"6fcae2d7a4c8468ab62e0041b612c48a","document":"45745414820","scoreV3":"443","personaBancarizada":"2","personaPresencaDigital":"2","personaBanco":"Desbancarizado","personaCategoriaCartao":"Cartao nao mapeado","flagVAVR":"0","consumoGeral":"18","magazine":null,"delivery":"33","vestuario":null,"esportes":null,"farmacia":null,"casa":null,"cosmeticos":null,"eletronicos":null,"mercados":null,"pets":null,"lazer":null},{"id":"0ecb978a90424e39bc1bea11ab9eb93b","document":"43687371808","scoreV3":"478","personaBancarizada":"2","personaPresencaDigital":"4","personaBanco":"Grandes Bancos privados","personaCategoriaCartao":"Entrada","flagVAVR":"0","consumoGeral":"46","magazine":null,"delivery":null,"vestuario":"24","esportes":null,"farmacia":null,"casa":null,"cosmeticos":null,"eletronicos":"72","mercados":null,"pets":null,"lazer":null},{"id":"6f08b6ae2b6b4029bf2fcc034213981d","document":"40841764867","scoreV3":"337","personaBancarizada":"2","personaPresencaDigital":"3","personaBanco":"Grandes Bancos privados","personaCategoriaCartao":"Entrada","flagVAVR":"0","consumoGeral":"61","magazine":null,"delivery":"80","vestuario":null,"esportes":null,"farmacia":null,"casa":null,"cosmeticos":null,"eletronicos":null,"mercados":null,"pets":null,"lazer":null},{"id":"351aec741ac1410193cb8040fae1b08f","document":"62992254320","scoreV3":"437","personaBancarizada":"5","personaPresencaDigital":"6","personaBanco":"Bancos Digitais","personaCategoriaCartao":"Entrada","flagVAVR":"0","consumoGeral":null,"magazine":null,"delivery":null,"vestuario":null,"esportes":null,"farmacia":null,"casa":null,"cosmeticos":null,"eletronicos":null,"mercados":null,"pets":null,"lazer":null},{"id":"cf1545a6c6dd4949bcfc0e4d47620b77","document":"00142217565","scoreV3":"802","personaBancarizada":"5","personaPresencaDigital":"5","personaBanco":"Grandes Bancos privados","personaCategoriaCartao":"Entrada","flagVAVR":"0","consumoGeral":"68","magazine":"68","delivery":"13","vestuario":null,"esportes":null,"farmacia":null,"casa":null,"cosmeticos":null,"eletronicos":null,"mercados":null,"pets":null,"lazer":null},{"id":"24783dc247cf477cadef9652e8c43391","document":"49397965824","scoreV3":"558","personaBancarizada":"5","personaPresencaDigital":"6","personaBanco":"Bancos Digitais","personaCategoriaCartao":"Premium","flagVAVR":"0","consumoGeral":"72","magazine":"59","delivery":"54","vestuario":"64","esportes":null,"farmacia":null,"casa":null,"cosmeticos":null,"eletronicos":null,"mercados":null,"pets":null,"lazer":null},{"id":"931419ec051f483f9c9ce52d6e8d8e3b","document":"48817772895","scoreV3":"263","personaBancarizada":"0","personaPresencaDigital":"0","personaBanco":"Desbancarizado","personaCategoriaCartao":"Cartao nao mapeado","flagVAVR":"0","consumoGeral":null,"magazine":null,"delivery":null,"vestuario":null,"esportes":null,"farmacia":null,"casa":null,"cosmeticos":null,"eletronicos":null,"mercados":null,"pets":null,"lazer":null},{"id":"9755a9a89dcb4c62b79cddd036918841","document":"48326123870","scoreV3":"418","personaBancarizada":"0","personaPresencaDigital":"6","personaBanco":"Desbancarizado","personaCategoriaCartao":"Cartao nao mapeado","flagVAVR":"0","consumoGeral":null,"magazine":null,"delivery":null,"vestuario":null,"esportes":null,"farmacia":null,"casa":null,"cosmeticos":null,"eletronicos":null,"mercados":null,"pets":null,"lazer":null},{"id":"194240eae6254db188c2ab22c3aaf8d5","document":"49492614871","scoreV3":"752","personaBancarizada":"5","personaPresencaDigital":"6","personaBanco":"Bancos Digitais","personaCategoriaCartao":"Entrada","flagVAVR":"0","consumoGeral":"64","magazine":null,"delivery":"77","vestuario":null,"esportes":"40","farmacia":null,"casa":null,"cosmeticos":null,"eletronicos":"57","mercados":null,"pets":null,"lazer":null},{"id":"b899b33f3f164827b6d7cc210836dcad","document":"15467343840","scoreV3":"651","personaBancarizada":"5","personaPresencaDigital":"6","personaBanco":"Grandes Bancos públicos","personaCategoriaCartao":"Entrada","flagVAVR":"0","consumoGeral":"66","magazine":"19","delivery":"43","vestuario":null,"esportes":null,"farmacia":null,"casa":"65","cosmeticos":null,"eletronicos":null,"mercados":null,"pets":null,"lazer":null},{"id":"61e6a475a17c4d88a2cc1e65702ee3ed","document":"32939877882","scoreV3":"642","personaBancarizada":"3","personaPresencaDigital":"6","personaBanco":"Grandes Bancos privados","personaCategoriaCartao":"Premium","flagVAVR":"0","consumoGeral":"81","magazine":"78","delivery":null,"vestuario":null,"esportes":"80","farmacia":null,"casa":null,"cosmeticos":null,"eletronicos":null,"mercados":null,"pets":null,"lazer":null},{"id":"28ef97cbdf264d64a8872d6503b95273","document":"12771518813","scoreV3":"736","personaBancarizada":"4","personaPresencaDigital":"6","personaBanco":"Grandes Bancos privados","personaCategoriaCartao":"Entrada","flagVAVR":"0","consumoGeral":"61","magazine":null,"delivery":"81","vestuario":null,"esportes":null,"farmacia":null,"casa":null,"cosmeticos":null,"eletronicos":null,"mercados":null,"pets":null,"lazer":null},{"id":"d3fcd835ce8447c08cda0b1703204908","document":"00139450840","scoreV3":"687","personaBancarizada":"3","personaPresencaDigital":"6","personaBanco":"Outros","personaCategoriaCartao":"Entrada","flagVAVR":"0","consumoGeral":"60","magazine":"60","delivery":null,"vestuario":null,"esportes":null,"farmacia":null,"casa":null,"cosmeticos":null,"eletronicos":null,"mercados":null,"pets":null,"lazer":null},{"id":"053422fd16d3401ea8a98e7b7ced9eca","document":"47232879814","scoreV3":"197","personaBancarizada":"1","personaPresencaDigital":"0","personaBanco":"Desbancarizado","personaCategoriaCartao":"Cartao nao mapeado","flagVAVR":"0","consumoGeral":null,"magazine":null,"delivery":null,"vestuario":null,"esportes":null,"farmacia":null,"casa":null,"cosmeticos":null,"eletronicos":null,"mercados":null,"pets":null,"lazer":null},{"id":"b76c8800f5ae44f8902b12af2bb263c3","document":"53123823881","scoreV3":"489","personaBancarizada":"4","personaPresencaDigital":"4","personaBanco":"Bancos Digitais","personaCategoriaCartao":"Entrada","flagVAVR":"0","consumoGeral":null,"magazine":null,"delivery":null,"vestuario":null,"esportes":null,"farmacia":null,"casa":null,"cosmeticos":null,"eletronicos":null,"mercados":null,"pets":null,"lazer":null},{"id":"4f41ca19a4a546edb5c8eab807983098","document":"44041865840","scoreV3":"530","personaBancarizada":"4","personaPresencaDigital":"4","personaBanco":"Grandes Bancos privados","personaCategoriaCartao":"Entrada","flagVAVR":"0","consumoGeral":"12","magazine":null,"delivery":"23","vestuario":null,"esportes":null,"farmacia":null,"casa":null,"cosmeticos":null,"eletronicos":null,"mercados":null,"pets":null,"lazer":null},{"id":"12acd2dc2b8e4a3b88d01ef839f16d98","document":"49065891897","scoreV3":"635","personaBancarizada":"5","personaPresencaDigital":"5","personaBanco":"Desbancarizado","personaCategoriaCartao":"VAVR","flagVAVR":"1","consumoGeral":"48","magazine":null,"delivery":"67","vestuario":null,"esportes":null,"farmacia":null,"casa":null,"cosmeticos":null,"eletronicos":null,"mercados":null,"pets":null,"lazer":"41"},{"id":"0a99a362c07641a5985490880d77f4f4","document":"46961618898","scoreV3":"239","personaBancarizada":"3","personaPresencaDigital":"6","personaBanco":"Bancos Digitais","personaCategoriaCartao":"Entrada","flagVAVR":"0","consumoGeral":"22","magazine":null,"delivery":"40","vestuario":null,"esportes":null,"farmacia":null,"casa":null,"cosmeticos":null,"eletronicos":null,"mercados":null,"pets":null,"lazer":null},{"id":"e82bf19a12134ad3879ca5649567124e","document":"42798644895","scoreV3":"731","personaBancarizada":"5","personaPresencaDigital":"6","personaBanco":"Outros","personaCategoriaCartao":"Entrada","flagVAVR":"1","consumoGeral":"85","magazine":null,"delivery":"94","vestuario":null,"esportes":"6","farmacia":null,"casa":null,"cosmeticos":null,"eletronicos":null,"mercados":null,"pets":null,"lazer":null},{"id":"071a5e1351594dbe884bdbdc791a1ad0","document":"47707228855","scoreV3":"553","personaBancarizada":"5","personaPresencaDigital":"6","personaBanco":"Bancos Digitais","personaCategoriaCartao":"Entrada","flagVAVR":"0","consumoGeral":"79","magazine":"53","delivery":"70","vestuario":null,"esportes":null,"farmacia":"2","casa":"46","cosmeticos":"79","eletronicos":null,"mercados":null,"pets":"7","lazer":null},{"id":"5f7676bce9d44ed09131d880ed6c3b7d","document":"42796303802","scoreV3":"224","personaBancarizada":"1","personaPresencaDigital":"0","personaBanco":"Desbancarizado","personaCategoriaCartao":"Cartao nao mapeado","flagVAVR":"0","consumoGeral":null,"magazine":null,"delivery":null,"vestuario":null,"esportes":null,"farmacia":null,"casa":null,"cosmeticos":null,"eletronicos":null,"mercados":null,"pets":null,"lazer":null},{"id":"d1501bcc6f3d421fa914af67ed670dbc","document":"65491564591","scoreV3":"221","personaBancarizada":"1","personaPresencaDigital":"0","personaBanco":"Desbancarizado","personaCategoriaCartao":"Cartao nao mapeado","flagVAVR":"0","consumoGeral":null,"magazine":null,"delivery":null,"vestuario":null,"esportes":null,"farmacia":null,"casa":null,"cosmeticos":null,"eletronicos":null,"mercados":null,"pets":null,"lazer":null},{"id":"2165dcf9c6da494cae91548e5c9d1bd1","document":"10223342807","scoreV3":"900","personaBancarizada":"4","personaPresencaDigital":"6","personaBanco":"Bancos Digitais","personaCategoriaCartao":"Entrada","flagVAVR":"0","consumoGeral":"84","magazine":null,"delivery":"94","vestuario":null,"esportes":null,"farmacia":null,"casa":null,"cosmeticos":null,"eletronicos":null,"mercados":null,"pets":null,"lazer":null},{"id":"e9bf9eccfe754e67963cdb4080887c48","document":"50448037823","scoreV3":"463","personaBancarizada":"2","personaPresencaDigital":"2","personaBanco":"Desbancarizado","personaCategoriaCartao":"VAVR","flagVAVR":"1","consumoGeral":"42","magazine":null,"delivery":"64","vestuario":null,"esportes":null,"farmacia":null,"casa":null,"cosmeticos":null,"eletronicos":null,"mercados":null,"pets":null,"lazer":null},{"id":"ca7739ed83fe4447a7aab2661e1df5a1","document":"06428672839","scoreV3":"665","personaBancarizada":"1","personaPresencaDigital":"0","personaBanco":"Desbancarizado","personaCategoriaCartao":"Cartao nao mapeado","flagVAVR":"0","consumoGeral":null,"magazine":null,"delivery":null,"vestuario":null,"esportes":null,"farmacia":null,"casa":null,"cosmeticos":null,"eletronicos":null,"mercados":null,"pets":null,"lazer":null},{"id":"N/A","document":null,"scoreV3":null,"personaBancarizada":null,"personaPresencaDigital":null,"personaBanco":null,"personaCategoriaCartao":null,"flagVAVR":null,"consumoGeral":null,"magazine":null,"delivery":null,"vestuario":null,"esportes":null,"farmacia":null,"casa":null,"cosmeticos":null,"eletronicos":null,"mercados":null,"pets":null,"lazer":null},{"id":"352e1cdc7db14159ab1259ae9610041b","document":"40571013813","scoreV3":"901","personaBancarizada":"3","personaPresencaDigital":"6","personaBanco":"Bancos Digitais","personaCategoriaCartao":"Entrada","flagVAVR":"1","consumoGeral":"68","magazine":null,"delivery":"60","vestuario":"60","esportes":"81","farmacia":null,"casa":null,"cosmeticos":null,"eletronicos":null,"mercados":null,"pets":null,"lazer":null},{"id":"6de281c091da44308f38662b30d5b41a","document":"37116453806","scoreV3":"189","personaBancarizada":"1","personaPresencaDigital":"0","personaBanco":"Desbancarizado","personaCategoriaCartao":"Cartao nao mapeado","flagVAVR":"0","consumoGeral":null,"magazine":null,"delivery":null,"vestuario":null,"esportes":null,"farmacia":null,"casa":null,"cosmeticos":null,"eletronicos":null,"mercados":null,"pets":null,"lazer":null},{"id":"89cd8a8ddf814ecdbddb0da107df2e86","document":"77241487672","scoreV3":"721","personaBancarizada":"5","personaPresencaDigital":"5","personaBanco":"Bancos Digitais","personaCategoriaCartao":"Entrada","flagVAVR":"0","consumoGeral":"34","magazine":"28","delivery":null,"vestuario":null,"esportes":null,"farmacia":null,"casa":null,"cosmeticos":null,"eletronicos":null,"mercados":null,"pets":null,"lazer":null},{"id":"4b16ca66651d456ebf82095f17aeb0a3","document":"23569017877","scoreV3":"548","personaBancarizada":"2","personaPresencaDigital":"5","personaBanco":"Bancos Médios","personaCategoriaCartao":"Entrada","flagVAVR":"0","consumoGeral":"41","magazine":"1","delivery":null,"vestuario":null,"esportes":null,"farmacia":null,"casa":null,"cosmeticos":"69","eletronicos":null,"mercados":null,"pets":null,"lazer":null},{"id":"be83f1a29f80410fb271ecfc17d8711f","document":"35627230835","scoreV3":"604","personaBancarizada":"4","personaPresencaDigital":"6","personaBanco":"Bancos Digitais","personaCategoriaCartao":"Intermediário","flagVAVR":"1","consumoGeral":"78","magazine":"66","delivery":"79","vestuario":"5","esportes":null,"farmacia":null,"casa":null,"cosmeticos":null,"eletronicos":null,"mercados":null,"pets":null,"lazer":null},{"id":"6e0e07cfdd06410cb631d9e1d5c88df4","document":"50845912801","scoreV3":"284","personaBancarizada":"2","personaPresencaDigital":"3","personaBanco":"Bancos Digitais","personaCategoriaCartao":"Entrada","flagVAVR":"0","consumoGeral":"54","magazine":null,"delivery":"75","vestuario":null,"esportes":null,"farmacia":null,"casa":null,"cosmeticos":null,"eletronicos":null,"mercados":null,"pets":null,"lazer":null},{"id":"1cff4ae51a1f47b0ae0548450f3d2eb5","document":"34166819836","scoreV3":"535","personaBancarizada":"4","personaPresencaDigital":"5","personaBanco":"Bancos Digitais","personaCategoriaCartao":"Entrada","flagVAVR":"0","consumoGeral":"32","magazine":"11","delivery":"42","vestuario":null,"esportes":null,"farmacia":null,"casa":null,"cosmeticos":null,"eletronicos":null,"mercados":null,"pets":null,"lazer":null},{"id":"9903f75a1f4a4777a3d9bc201f0db52e","document":"38662783813","scoreV3":"959","personaBancarizada":"5","personaPresencaDigital":"6","personaBanco":"Grandes Bancos privados","personaCategoriaCartao":"Intermediário","flagVAVR":"0","consumoGeral":"73","magazine":"60","delivery":"77","vestuario":null,"esportes":null,"farmacia":null,"casa":null,"cosmeticos":null,"eletronicos":null,"mercados":null,"pets":null,"lazer":null},{"id":"e6cfe9a3ae1e46e78fc506d1ecd368f7","document":"37060113878","scoreV3":"196","personaBancarizada":"3","personaPresencaDigital":"6","personaBanco":"Cooperativas","personaCategoriaCartao":"Entrada","flagVAVR":"0","consumoGeral":"57","magazine":"52","delivery":"38","vestuario":null,"esportes":null,"farmacia":null,"casa":null,"cosmeticos":null,"eletronicos":null,"mercados":null,"pets":null,"lazer":null},{"id":"6561a4dac5464e3988bbcfc653bb0e9b","document":"41962096882","scoreV3":"890","personaBancarizada":"5","personaPresencaDigital":"6","personaBanco":"Grandes Bancos privados","personaCategoriaCartao":"Premium","flagVAVR":"1","consumoGeral":"95","magazine":"28","delivery":"56","vestuario":null,"esportes":"41","farmacia":"8","casa":null,"cosmeticos":null,"eletronicos":null,"mercados":"98","pets":null,"lazer":null},{"id":"547e64a06c624fd7b48ab648f6d3e881","document":"31766925871","scoreV3":"621","personaBancarizada":"5","personaPresencaDigital":"6","personaBanco":"Outros","personaCategoriaCartao":"Entrada","flagVAVR":"0","consumoGeral":"27","magazine":null,"delivery":"4","vestuario":null,"esportes":null,"farmacia":"39","casa":null,"cosmeticos":null,"eletronicos":null,"mercados":null,"pets":null,"lazer":null},{"id":"5a4eebc755474cc8927fc7dcea2f443e","document":"70652086217","scoreV3":"90","personaBancarizada":"0","personaPresencaDigital":"1","personaBanco":"Desbancarizado","personaCategoriaCartao":"Cartao nao mapeado","flagVAVR":"0","consumoGeral":"10","magazine":null,"delivery":"19","vestuario":null,"esportes":null,"farmacia":null,"casa":null,"cosmeticos":null,"eletronicos":null,"mercados":null,"pets":null,"lazer":null},{"id":"c78883e7639c43e08d552b8cd8670395","document":"11693094886","scoreV3":"730","personaBancarizada":"4","personaPresencaDigital":"4","personaBanco":"Bancos Digitais","personaCategoriaCartao":"Entrada","flagVAVR":"0","consumoGeral":"76","magazine":"65","delivery":"74","vestuario":null,"esportes":null,"farmacia":null,"casa":null,"cosmeticos":"22","eletronicos":null,"mercados":null,"pets":null,"lazer":null},{"id":"abc192e869614e9db901b7d76c5ea5e3","document":"37945567800","scoreV3":"346","personaBancarizada":"3","personaPresencaDigital":"1","personaBanco":"Grandes Bancos privados","personaCategoriaCartao":"Entrada","flagVAVR":"0","consumoGeral":null,"magazine":null,"delivery":null,"vestuario":null,"esportes":null,"farmacia":null,"casa":null,"cosmeticos":null,"eletronicos":null,"mercados":null,"pets":null,"lazer":null},{"id":"4b525d7e586842b29534fc42e83b09c9","document":"30752375822","scoreV3":"954","personaBancarizada":"4","personaPresencaDigital":"6","personaBanco":"Bancos Digitais","personaCategoriaCartao":"Premium","flagVAVR":"0","consumoGeral":"99","magazine":"79","delivery":"26","vestuario":null,"esportes":null,"farmacia":"100","casa":null,"cosmeticos":null,"eletronicos":null,"mercados":null,"pets":null,"lazer":null},{"id":"23d960553a3c4d8c820000d12daf7b96","document":"37177608826","scoreV3":"756","personaBancarizada":"3","personaPresencaDigital":"6","personaBanco":"Grandes Bancos privados","personaCategoriaCartao":"Intermediário","flagVAVR":"0","consumoGeral":"94","magazine":"97","delivery":null,"vestuario":null,"esportes":null,"farmacia":null,"casa":null,"cosmeticos":null,"eletronicos":null,"mercados":null,"pets":null,"lazer":null},{"id":"47bf13e7c20d45eea07671f3a350561a","document":"42705934820","scoreV3":"339","personaBancarizada":"2","personaPresencaDigital":"2","personaBanco":"Outros","personaCategoriaCartao":"Entrada","flagVAVR":"0","consumoGeral":null,"magazine":null,"delivery":null,"vestuario":null,"esportes":null,"farmacia":null,"casa":null,"cosmeticos":null,"eletronicos":null,"mercados":null,"pets":null,"lazer":null},{"id":"a5f24f1d5fb94009a00403caa0187058","document":"14846785831","scoreV3":"702","personaBancarizada":"5","personaPresencaDigital":"5","personaBanco":"Grandes Bancos privados","personaCategoriaCartao":"Entrada","flagVAVR":"0","consumoGeral":"88","magazine":"91","delivery":null,"vestuario":null,"esportes":null,"farmacia":"5","casa":null,"cosmeticos":null,"eletronicos":null,"mercados":null,"pets":null,"lazer":null},{"id":"ef06d0e912874c3b878aa72d361f30d6","document":"45563609863","scoreV3":"596","personaBancarizada":"3","personaPresencaDigital":"6","personaBanco":"Bancos Digitais","personaCategoriaCartao":"Intermediário","flagVAVR":"0","consumoGeral":"15","magazine":"4","delivery":"11","vestuario":null,"esportes":null,"farmacia":null,"casa":null,"cosmeticos":null,"eletronicos":null,"mercados":null,"pets":null,"lazer":null},{"id":"9e3e27b9d66c400eb9d67d18ba95dea7","document":"05079377321","scoreV3":"535","personaBancarizada":"2","personaPresencaDigital":"3","personaBanco":"Grandes Bancos privados","personaCategoriaCartao":"Entrada","flagVAVR":"0","consumoGeral":null,"magazine":null,"delivery":null,"vestuario":null,"esportes":null,"farmacia":null,"casa":null,"cosmeticos":null,"eletronicos":null,"mercados":null,"pets":null,"lazer":null},{"id":"1e6d0d8005b84d32a972d73406eee035","document":"50056992874","scoreV3":"563","personaBancarizada":"3","personaPresencaDigital":"4","personaBanco":"Bancos Digitais","personaCategoriaCartao":"Entrada","flagVAVR":"0","consumoGeral":"43","magazine":"39","delivery":null,"vestuario":null,"esportes":null,"farmacia":null,"casa":null,"cosmeticos":null,"eletronicos":null,"mercados":null,"pets":null,"lazer":null},{"id":"791d5fedc6b1451697c22eda6aca9a72","document":"54181904822","scoreV3":"225","personaBancarizada":"0","personaPresencaDigital":"0","personaBanco":null,"personaCategoriaCartao":null,"flagVAVR":null,"consumoGeral":null,"magazine":null,"delivery":null,"vestuario":null,"esportes":null,"farmacia":null,"casa":null,"cosmeticos":null,"eletronicos":null,"mercados":null,"pets":null,"lazer":null},{"id":"eda09e0fedfe43ad9940f95e762672ac","document":"44403994873","scoreV3":"576","personaBancarizada":"5","personaPresencaDigital":"5","personaBanco":"Grandes Bancos privados","personaCategoriaCartao":"Entrada","flagVAVR":"0","consumoGeral":"97","magazine":"38","delivery":"99","vestuario":null,"esportes":"62","farmacia":null,"casa":null,"cosmeticos":null,"eletronicos":null,"mercados":null,"pets":null,"lazer":null},{"id":"0f75a8aca8ae4b5896c72da964c8227a","document":"48666965835","scoreV3":"550","personaBancarizada":"3","personaPresencaDigital":"6","personaBanco":"Grandes Bancos privados","personaCategoriaCartao":"Entrada","flagVAVR":"0","consumoGeral":"51","magazine":"30","delivery":null,"vestuario":null,"esportes":"59","farmacia":null,"casa":null,"cosmeticos":null,"eletronicos":null,"mercados":null,"pets":null,"lazer":null},{"id":"ca9a8deb0742495f9825b4bc786984ca","document":"22779377895","scoreV3":"626","personaBancarizada":"2","personaPresencaDigital":"4","personaBanco":"Desbancarizado","personaCategoriaCartao":"VAVR","flagVAVR":"0","consumoGeral":null,"magazine":null,"delivery":null,"vestuario":null,"esportes":null,"farmacia":null,"casa":null,"cosmeticos":null,"eletronicos":null,"mercados":null,"pets":null,"lazer":null},{"id":"d8e164f558e844d4b9be72238b620858","document":"51460821890","scoreV3":"108","personaBancarizada":"2","personaPresencaDigital":"2","personaBanco":"Bancos Digitais","personaCategoriaCartao":"Entrada","flagVAVR":"0","consumoGeral":"25","magazine":null,"delivery":"44","vestuario":null,"esportes":null,"farmacia":null,"casa":null,"cosmeticos":null,"eletronicos":null,"mercados":null,"pets":null,"lazer":null},{"id":"4d58213aea83478b9cc8e0406aa9b70d","document":"54060440876","scoreV3":"667","personaBancarizada":"5","personaPresencaDigital":"5","personaBanco":"Grandes Bancos privados","personaCategoriaCartao":"Intermediário","flagVAVR":"0","consumoGeral":"70","magazine":"71","delivery":null,"vestuario":null,"esportes":null,"farmacia":"7","casa":null,"cosmeticos":null,"eletronicos":null,"mercados":null,"pets":null,"lazer":null},{"id":"2860a8d5f162486a8112c13a69d29816","document":"45491158828","scoreV3":"547","personaBancarizada":"5","personaPresencaDigital":"5","personaBanco":"Bancos Médios","personaCategoriaCartao":"Intermediário","flagVAVR":"0","consumoGeral":"32","magazine":null,"delivery":null,"vestuario":null,"esportes":"43","farmacia":null,"casa":null,"cosmeticos":null,"eletronicos":null,"mercados":null,"pets":null,"lazer":null},{"id":"a32537f6e6db4f59bf1b36616a818ee4","document":"49021994836","scoreV3":"610","personaBancarizada":"3","personaPresencaDigital":"6","personaBanco":"Grandes Bancos públicos","personaCategoriaCartao":"Entrada","flagVAVR":"1","consumoGeral":"65","magazine":null,"delivery":"82","vestuario":null,"esportes":null,"farmacia":null,"casa":null,"cosmeticos":null,"eletronicos":"58","mercados":null,"pets":null,"lazer":null},{"id":"7201d3340b4f4510a2cbe33ad2a39af2","document":"39178751870","scoreV3":"734","personaBancarizada":"4","personaPresencaDigital":"6","personaBanco":"Bancos Digitais","personaCategoriaCartao":"Entrada","flagVAVR":"0","consumoGeral":"86","magazine":"60","delivery":"83","vestuario":null,"esportes":null,"farmacia":"4","casa":null,"cosmeticos":"91","eletronicos":"7","mercados":null,"pets":"14","lazer":null},{"id":"ac592958379e45b29736cb36c7e9d5d3","document":"24284636839","scoreV3":"580","personaBancarizada":"2","personaPresencaDigital":"5","personaBanco":"Grandes Bancos privados","personaCategoriaCartao":"Entrada","flagVAVR":"0","consumoGeral":"85","magazine":null,"delivery":null,"vestuario":null,"esportes":null,"farmacia":null,"casa":null,"cosmeticos":null,"eletronicos":"96","mercados":null,"pets":null,"lazer":null},{"id":"4bdda00f4bca4edcbabb1e336d3d7efc","document":"70441601235","scoreV3":"137","personaBancarizada":"2","personaPresencaDigital":"2","personaBanco":"Bancos Digitais","personaCategoriaCartao":"Entrada","flagVAVR":"0","consumoGeral":"8","magazine":null,"delivery":"17","vestuario":null,"esportes":null,"farmacia":null,"casa":null,"cosmeticos":null,"eletronicos":null,"mercados":null,"pets":null,"lazer":null},{"id":"c94a1d54dd2d48d9ac12b79f8f31edc3","document":"31710668822","scoreV3":"721","personaBancarizada":"2","personaPresencaDigital":"5","personaBanco":"Grandes Bancos privados","personaCategoriaCartao":"Entrada","flagVAVR":"0","consumoGeral":"26","magazine":"19","delivery":null,"vestuario":null,"esportes":null,"farmacia":null,"casa":null,"cosmeticos":null,"eletronicos":null,"mercados":null,"pets":null,"lazer":null},{"id":"fa6f0187d1464dea81fa6e639e2f2378","document":"07062261513","scoreV3":"628","personaBancarizada":"5","personaPresencaDigital":"6","personaBanco":"Grandes Bancos privados","personaCategoriaCartao":"Intermediário","flagVAVR":"1","consumoGeral":"73","magazine":null,"delivery":"64","vestuario":null,"esportes":"95","farmacia":null,"casa":null,"cosmeticos":null,"eletronicos":null,"mercados":null,"pets":null,"lazer":null},{"id":"5806aca81a5f40d68448f2f9bbead8f0","document":"43141903883","scoreV3":"633","personaBancarizada":"5","personaPresencaDigital":"6","personaBanco":"Bancos Digitais","personaCategoriaCartao":"Entrada","flagVAVR":"0","consumoGeral":"14","magazine":null,"delivery":null,"vestuario":null,"esportes":null,"farmacia":null,"casa":null,"cosmeticos":"15","eletronicos":null,"mercados":null,"pets":null,"lazer":null},{"id":"709dac4e788048d5933ff0c71b990f8b","document":"43404577876","scoreV3":"505","personaBancarizada":"4","personaPresencaDigital":"4","personaBanco":"Bancos Digitais","personaCategoriaCartao":"Entrada","flagVAVR":"0","consumoGeral":"73","magazine":null,"delivery":"88","vestuario":null,"esportes":null,"farmacia":null,"casa":null,"cosmeticos":null,"eletronicos":null,"mercados":null,"pets":null,"lazer":null},{"id":"652c8f905ee2423f844a131d7d12f14a","document":"38159806825","scoreV3":"485","personaBancarizada":"5","personaPresencaDigital":"6","personaBanco":"Grandes Bancos privados","personaCategoriaCartao":"Entrada","flagVAVR":"0","consumoGeral":null,"magazine":null,"delivery":null,"vestuario":null,"esportes":null,"farmacia":null,"casa":null,"cosmeticos":null,"eletronicos":null,"mercados":null,"pets":null,"lazer":null},{"id":"0aecba1f7d74454581b87e5a7909acc7","document":"25093883808","scoreV3":"429","personaBancarizada":"1","personaPresencaDigital":"0","personaBanco":"Desbancarizado","personaCategoriaCartao":"Cartao nao mapeado","flagVAVR":"0","consumoGeral":null,"magazine":null,"delivery":null,"vestuario":null,"esportes":null,"farmacia":null,"casa":null,"cosmeticos":null,"eletronicos":null,"mercados":null,"pets":null,"lazer":null},{"id":"759b424691614a2095a59a79f8f723bb","document":"38054109806","scoreV3":"561","personaBancarizada":"5","personaPresencaDigital":"6","personaBanco":"Grandes Bancos públicos","personaCategoriaCartao":"Entrada","flagVAVR":"0","consumoGeral":"76","magazine":"52","delivery":"84","vestuario":null,"esportes":null,"farmacia":null,"casa":null,"cosmeticos":null,"eletronicos":null,"mercados":null,"pets":null,"lazer":null},{"id":"4d797c3e214140c5a4ce1d7a810330a0","document":"52097635873","scoreV3":"369","personaBancarizada":"2","personaPresencaDigital":"3","personaBanco":"Grandes Bancos privados","personaCategoriaCartao":"Entrada","flagVAVR":"0","consumoGeral":"42","magazine":null,"delivery":"64","vestuario":null,"esportes":null,"farmacia":null,"casa":null,"cosmeticos":null,"eletronicos":null,"mercados":null,"pets":null,"lazer":null},{"id":"d5088b6d02e341bab7527cd900764a3b","document":"51837547807","scoreV3":"451","personaBancarizada":"2","personaPresencaDigital":"2","personaBanco":"Outros","personaCategoriaCartao":"Entrada","flagVAVR":"0","consumoGeral":"18","magazine":null,"delivery":"34","vestuario":null,"esportes":null,"farmacia":null,"casa":null,"cosmeticos":null,"eletronicos":null,"mercados":null,"pets":null,"lazer":null},{"id":"1638cc45d3044c70a749c42d1705fb6f","document":"48119995848","scoreV3":"370","personaBancarizada":"3","personaPresencaDigital":"4","personaBanco":"Bancos Médios","personaCategoriaCartao":"Entrada","flagVAVR":"0","consumoGeral":"24","magazine":null,"delivery":null,"vestuario":null,"esportes":"23","farmacia":null,"casa":null,"cosmeticos":null,"eletronicos":null,"mercados":null,"pets":null,"lazer":null},{"id":"5d3b12fa318b425c80e707140b9ac37d","document":"01866912542","scoreV3":"487","personaBancarizada":"3","personaPresencaDigital":"5","personaBanco":"Outros","personaCategoriaCartao":"Intermediário","flagVAVR":"0","consumoGeral":"30","magazine":null,"delivery":"51","vestuario":null,"esportes":null,"farmacia":null,"casa":null,"cosmeticos":null,"eletronicos":null,"mercados":null,"pets":null,"lazer":null},{"id":"07b8e5993a184d748b2a77e8f8eaf4b2","document":"47013811874","scoreV3":"859","personaBancarizada":"2","personaPresencaDigital":"6","personaBanco":"Outros","personaCategoriaCartao":"Entrada","flagVAVR":"0","consumoGeral":"87","magazine":"28","delivery":"95","vestuario":null,"esportes":null,"farmacia":null,"casa":null,"cosmeticos":null,"eletronicos":null,"mercados":null,"pets":null,"lazer":null},{"id":"343d6131a0944665b4da768f706b0165","document":"43306182818","scoreV3":"478","personaBancarizada":"5","personaPresencaDigital":"4","personaBanco":"Grandes Bancos privados","personaCategoriaCartao":"Entrada","flagVAVR":"1","consumoGeral":"80","magazine":null,"delivery":"92","vestuario":null,"esportes":null,"farmacia":null,"casa":null,"cosmeticos":null,"eletronicos":null,"mercados":null,"pets":"5","lazer":null},{"id":"ced33ac80407451bacd58bbadb32812d","document":"44786427888","scoreV3":"596","personaBancarizada":"2","personaPresencaDigital":"3","personaBanco":"Grandes Bancos privados","personaCategoriaCartao":"Entrada","flagVAVR":"0","consumoGeral":null,"magazine":null,"delivery":null,"vestuario":null,"esportes":null,"farmacia":null,"casa":null,"cosmeticos":null,"eletronicos":null,"mercados":null,"pets":null,"lazer":null},{"id":"4bda02e4022f4411a1a669d1a716c4a9","document":"38565517861","scoreV3":"665","personaBancarizada":"4","personaPresencaDigital":"6","personaBanco":"Outros","personaCategoriaCartao":"Entrada","flagVAVR":"0","consumoGeral":"47","magazine":null,"delivery":"69","vestuario":null,"esportes":null,"farmacia":null,"casa":null,"cosmeticos":null,"eletronicos":null,"mercados":null,"pets":null,"lazer":null},{"id":"200ef158d34d44ce8d63328eb09a1f86","document":"45000791819","scoreV3":"252","personaBancarizada":"0","personaPresencaDigital":"1","personaBanco":"Desbancarizado","personaCategoriaCartao":"Cartao nao mapeado","flagVAVR":"0","consumoGeral":null,"magazine":null,"delivery":null,"vestuario":null,"esportes":null,"farmacia":null,"casa":null,"cosmeticos":null,"eletronicos":null,"mercados":null,"pets":null,"lazer":null},{"id":"e5f59de8229145a8a8d4249a3f86b579","document":"42254297848","scoreV3":"765","personaBancarizada":"5","personaPresencaDigital":"5","personaBanco":"Grandes Bancos privados","personaCategoriaCartao":"Entrada","flagVAVR":"0","consumoGeral":"91","magazine":"48","delivery":"73","vestuario":"86","esportes":"92","farmacia":null,"casa":null,"cosmeticos":"93","eletronicos":null,"mercados":null,"pets":null,"lazer":null},{"id":"a756102f82614e5498b91df558a6b52b","document":"31774158892","scoreV3":"714","personaBancarizada":"5","personaPresencaDigital":"6","personaBanco":"Bancos Médios","personaCategoriaCartao":"Entrada","flagVAVR":"0","consumoGeral":"85","magazine":"85","delivery":null,"vestuario":null,"esportes":null,"farmacia":null,"casa":null,"cosmeticos":null,"eletronicos":null,"mercados":"46","pets":null,"lazer":null},{"id":"d3a6afebb1d043f69b7dfa5ac1d39781","document":"34513007885","scoreV3":"466","personaBancarizada":"3","personaPresencaDigital":"6","personaBanco":"Grandes Bancos públicos","personaCategoriaCartao":"Entrada","flagVAVR":"0","consumoGeral":"31","magazine":"24","delivery":null,"vestuario":null,"esportes":null,"farmacia":null,"casa":null,"cosmeticos":null,"eletronicos":null,"mercados":null,"pets":null,"lazer":null},{"id":"ffcefafde99c414ea670f48c44d3c3cf","document":"23938946830","scoreV3":"450","personaBancarizada":"1","personaPresencaDigital":"4","personaBanco":"Desbancarizado","personaCategoriaCartao":"Cartao nao mapeado","flagVAVR":"0","consumoGeral":null,"magazine":null,"delivery":null,"vestuario":null,"esportes":null,"farmacia":null,"casa":null,"cosmeticos":null,"eletronicos":null,"mercados":null,"pets":null,"lazer":null},{"id":"199b666e85814f57986747d4c990678b","document":"36271919863","scoreV3":"480","personaBancarizada":"3","personaPresencaDigital":"1","personaBanco":"Bancos Médios","personaCategoriaCartao":"Entrada","flagVAVR":"0","consumoGeral":null,"magazine":null,"delivery":null,"vestuario":null,"esportes":null,"farmacia":null,"casa":null,"cosmeticos":null,"eletronicos":null,"mercados":null,"pets":null,"lazer":null},{"id":"60665335987f4662824b003673f69cd8","document":"30394054890","scoreV3":"568","personaBancarizada":"3","personaPresencaDigital":"5","personaBanco":"Bancos Digitais","personaCategoriaCartao":"Intermediário","flagVAVR":"0","consumoGeral":"33","magazine":"7","delivery":"47","vestuario":null,"esportes":null,"farmacia":null,"casa":null,"cosmeticos":null,"eletronicos":null,"mercados":null,"pets":null,"lazer":null},{"id":"2d61201903f248fd9df8618313d1ec91","document":"70653447205","scoreV3":"319","personaBancarizada":"3","personaPresencaDigital":"3","personaBanco":"Outros","personaCategoriaCartao":"Entrada","flagVAVR":"0","consumoGeral":"28","magazine":null,"delivery":"49","vestuario":null,"esportes":null,"farmacia":null,"casa":null,"cosmeticos":null,"eletronicos":null,"mercados":null,"pets":null,"lazer":null},{"id":"90a01c039a534dc6a2edb2559381e68f","document":"50575266856","scoreV3":"355","personaBancarizada":"2","personaPresencaDigital":"3","personaBanco":"Desbancarizado","personaCategoriaCartao":"Cartao nao mapeado","flagVAVR":"0","consumoGeral":"35","magazine":null,"delivery":null,"vestuario":null,"esportes":null,"farmacia":null,"casa":null,"cosmeticos":"26","eletronicos":"62","mercados":null,"pets":null,"lazer":null},{"id":"4ed56a7c131346b4887891c18dbdb668","document":"46066280813","scoreV3":"556","personaBancarizada":"2","personaPresencaDigital":"5","personaBanco":"Bancos Digitais","personaCategoriaCartao":"Entrada","flagVAVR":"0","consumoGeral":"19","magazine":null,"delivery":"35","vestuario":null,"esportes":null,"farmacia":null,"casa":null,"cosmeticos":null,"eletronicos":null,"mercados":null,"pets":null,"lazer":null},{"id":"b88d7d960b8e4f669da68e76b0031660","document":"13276412837","scoreV3":"459","personaBancarizada":"2","personaPresencaDigital":"1","personaBanco":"Bancos Digitais","personaCategoriaCartao":"Entrada","flagVAVR":"0","consumoGeral":null,"magazine":null,"delivery":null,"vestuario":null,"esportes":null,"farmacia":null,"casa":null,"cosmeticos":null,"eletronicos":null,"mercados":null,"pets":null,"lazer":null},{"id":"9ba07c83f24745c6854c413d2fe4ae5d","document":"41376106817","scoreV3":"703","personaBancarizada":"3","personaPresencaDigital":"6","personaBanco":"Outros","personaCategoriaCartao":"Premium","flagVAVR":"0","consumoGeral":"48","magazine":null,"delivery":"56","vestuario":null,"esportes":"43","farmacia":null,"casa":null,"cosmeticos":"12","eletronicos":null,"mercados":null,"pets":null,"lazer":null},{"id":"2af0f9f2948f42578ff3a90fbabb5c0a","document":"47861936821","scoreV3":"482","personaBancarizada":"2","personaPresencaDigital":"6","personaBanco":"Grandes Bancos privados","personaCategoriaCartao":"Entrada","flagVAVR":"0","consumoGeral":"55","magazine":null,"delivery":"76","vestuario":null,"esportes":null,"farmacia":null,"casa":null,"cosmeticos":null,"eletronicos":null,"mercados":null,"pets":null,"lazer":null},{"id":"bf48efc0691a4d8692946920d9cc89ad","document":"40241279852","scoreV3":"618","personaBancarizada":"5","personaPresencaDigital":"6","personaBanco":"Outros","personaCategoriaCartao":"Entrada","flagVAVR":"0","consumoGeral":"46","magazine":"8","delivery":"53","vestuario":null,"esportes":null,"farmacia":"7","casa":"17","cosmeticos":null,"eletronicos":null,"mercados":null,"pets":null,"lazer":null},{"id":"309ed03054294ba7b2e72984688c0707","document":"55650655855","scoreV3":"277","personaBancarizada":"2","personaPresencaDigital":"3","personaBanco":"Grandes Bancos privados","personaCategoriaCartao":"Entrada","flagVAVR":"0","consumoGeral":null,"magazine":null,"delivery":null,"vestuario":null,"esportes":null,"farmacia":null,"casa":null,"cosmeticos":null,"eletronicos":null,"mercados":null,"pets":null,"lazer":null},{"id":"7ca88b4538504e7395e98cacb564baac","document":"32749212898","scoreV3":"712","personaBancarizada":"3","personaPresencaDigital":"5","personaBanco":"Grandes Bancos privados","personaCategoriaCartao":"Intermediário","flagVAVR":"0","consumoGeral":"88","magazine":null,"delivery":"93","vestuario":null,"esportes":"94","farmacia":null,"casa":null,"cosmeticos":null,"eletronicos":null,"mercados":null,"pets":null,"lazer":null},{"id":"7b45434697d54a12aa46c93a168aa234","document":"17604417833","scoreV3":"783","personaBancarizada":"3","personaPresencaDigital":"6","personaBanco":"Grandes Bancos privados","personaCategoriaCartao":"Entrada","flagVAVR":"1","consumoGeral":"84","magazine":null,"delivery":"92","vestuario":"4","esportes":null,"farmacia":null,"casa":null,"cosmeticos":null,"eletronicos":null,"mercados":"47","pets":null,"lazer":null},{"id":"083110a3719c431d855e150ea1fbc9af","document":"34175900861","scoreV3":"550","personaBancarizada":"1","personaPresencaDigital":"4","personaBanco":"Bancos Médios","personaCategoriaCartao":"Entrada","flagVAVR":"0","consumoGeral":null,"magazine":null,"delivery":null,"vestuario":null,"esportes":null,"farmacia":null,"casa":null,"cosmeticos":null,"eletronicos":null,"mercados":null,"pets":null,"lazer":null},{"id":"cf072ec79a534c8ea9fc9a66cde28e2e","document":"36817079870","scoreV3":"534","personaBancarizada":"1","personaPresencaDigital":"1","personaBanco":"Desbancarizado","personaCategoriaCartao":"Cartao nao mapeado","flagVAVR":"0","consumoGeral":null,"magazine":null,"delivery":null,"vestuario":null,"esportes":null,"farmacia":null,"casa":null,"cosmeticos":null,"eletronicos":null,"mercados":null,"pets":null,"lazer":null},{"id":"a3c44cff6886418c8d2301e284746bdd","document":"47977077809","scoreV3":"344","personaBancarizada":"2","personaPresencaDigital":"3","personaBanco":"Grandes Bancos públicos","personaCategoriaCartao":"Entrada","flagVAVR":"0","consumoGeral":null,"magazine":null,"delivery":null,"vestuario":null,"esportes":null,"farmacia":null,"casa":null,"cosmeticos":null,"eletronicos":null,"mercados":null,"pets":null,"lazer":null},{"id":"15712d6900684bda9a721b3ed3984b6a","document":"49436736860","scoreV3":"498","personaBancarizada":"5","personaPresencaDigital":"6","personaBanco":"Bancos Digitais","personaCategoriaCartao":"Intermediário","flagVAVR":"0","consumoGeral":"68","magazine":"48","delivery":"59","vestuario":"47","esportes":null,"farmacia":null,"casa":"22","cosmeticos":null,"eletronicos":null,"mercados":null,"pets":null,"lazer":null},{"id":"ad53e6ab80794eb0bf1a76a42c100813","document":"44801731880","scoreV3":"406","personaBancarizada":"4","personaPresencaDigital":"3","personaBanco":"Bancos Digitais","personaCategoriaCartao":"Entrada","flagVAVR":"0","consumoGeral":"11","magazine":null,"delivery":"21","vestuario":null,"esportes":null,"farmacia":null,"casa":null,"cosmeticos":null,"eletronicos":null,"mercados":null,"pets":null,"lazer":null},{"id":"153776c0c75e458693390c2ec042dd98","document":"24167230810","scoreV3":"221","personaBancarizada":"0","personaPresencaDigital":"0","personaBanco":null,"personaCategoriaCartao":null,"flagVAVR":null,"consumoGeral":null,"magazine":null,"delivery":null,"vestuario":null,"esportes":null,"farmacia":null,"casa":null,"cosmeticos":null,"eletronicos":null,"mercados":null,"pets":null,"lazer":null},{"id":"7decf1331e554b3f8a5e8fbcbb2148b3","document":"44962449850","scoreV3":"742","personaBancarizada":"5","personaPresencaDigital":"6","personaBanco":"Grandes Bancos privados","personaCategoriaCartao":"Entrada","flagVAVR":"0","consumoGeral":"47","magazine":null,"delivery":"31","vestuario":null,"esportes":null,"farmacia":"65","casa":null,"cosmeticos":null,"eletronicos":null,"mercados":null,"pets":null,"lazer":null},{"id":"35ad2978b4564a3c8215641743ed9fff","document":"55369382824","scoreV3":"465","personaBancarizada":"2","personaPresencaDigital":"2","personaBanco":"Bancos Digitais","personaCategoriaCartao":"Entrada","flagVAVR":"0","consumoGeral":"30","magazine":null,"delivery":"51","vestuario":null,"esportes":null,"farmacia":null,"casa":null,"cosmeticos":null,"eletronicos":null,"mercados":null,"pets":null,"lazer":null},{"id":"f7b2d3201eaf4f6d8e0802de971581a3","document":"49482061802","scoreV3":"450","personaBancarizada":"1","personaPresencaDigital":"2","personaBanco":"Desbancarizado","personaCategoriaCartao":"Cartao nao mapeado","flagVAVR":"0","consumoGeral":null,"magazine":null,"delivery":null,"vestuario":null,"esportes":null,"farmacia":null,"casa":null,"cosmeticos":null,"eletronicos":null,"mercados":null,"pets":null,"lazer":null},{"id":"adb4256dd5c0480a928cf9ccc8f61400","document":"16836761818","scoreV3":"813","personaBancarizada":"5","personaPresencaDigital":"5","personaBanco":"Cooperativas","personaCategoriaCartao":"Entrada","flagVAVR":"0","consumoGeral":"62","magazine":"62","delivery":null,"vestuario":null,"esportes":null,"farmacia":null,"casa":null,"cosmeticos":null,"eletronicos":null,"mercados":null,"pets":null,"lazer":null},{"id":"2ba13c4a3afc49fc895043658a0c484f","document":"39776922830","scoreV3":"644","personaBancarizada":"2","personaPresencaDigital":"3","personaBanco":"Grandes Bancos privados","personaCategoriaCartao":"Entrada","flagVAVR":"1","consumoGeral":"47","magazine":null,"delivery":null,"vestuario":null,"esportes":"73","farmacia":null,"casa":null,"cosmeticos":null,"eletronicos":null,"mercados":null,"pets":null,"lazer":null},{"id":"d4bd57cbd8e546e19587a780cd2bea05","document":"50192224883","scoreV3":"345","personaBancarizada":"2","personaPresencaDigital":"2","personaBanco":"Desbancarizado","personaCategoriaCartao":"Cartao nao mapeado","flagVAVR":"0","consumoGeral":null,"magazine":null,"delivery":null,"vestuario":null,"esportes":null,"farmacia":null,"casa":null,"cosmeticos":null,"eletronicos":null,"mercados":null,"pets":null,"lazer":null},{"id":"9ee44e270a7f40dfb16e6ffac35034a6","document":"39596962809","scoreV3":"575","personaBancarizada":"5","personaPresencaDigital":"6","personaBanco":"Bancos Digitais","personaCategoriaCartao":"Entrada","flagVAVR":"0","consumoGeral":"67","magazine":"62","delivery":"50","vestuario":null,"esportes":null,"farmacia":null,"casa":"3","cosmeticos":null,"eletronicos":"7","mercados":null,"pets":null,"lazer":null},{"id":"48702ac6848c42a29b7e5d5900ede1e1","document":"37800184897","scoreV3":"348","personaBancarizada":"0","personaPresencaDigital":"4","personaBanco":"Desbancarizado","personaCategoriaCartao":"Cartao nao mapeado","flagVAVR":"0","consumoGeral":"22","magazine":null,"delivery":"39","vestuario":null,"esportes":null,"farmacia":null,"casa":null,"cosmeticos":null,"eletronicos":null,"mercados":null,"pets":null,"lazer":null},{"id":"77fec85a23e04cb79c5b09a6d6dae15c","document":"20609975854","scoreV3":"507","personaBancarizada":"5","personaPresencaDigital":"2","personaBanco":"Desbancarizado","personaCategoriaCartao":"Cartao nao mapeado","flagVAVR":"0","consumoGeral":null,"magazine":null,"delivery":null,"vestuario":null,"esportes":null,"farmacia":null,"casa":null,"cosmeticos":null,"eletronicos":null,"mercados":null,"pets":null,"lazer":null},{"id":"6221138ef7154266bec83667889293de","document":"22884047875","scoreV3":"380","personaBancarizada":"2","personaPresencaDigital":"2","personaBanco":"Grandes Bancos públicos","personaCategoriaCartao":"Entrada","flagVAVR":"0","consumoGeral":null,"magazine":null,"delivery":null,"vestuario":null,"esportes":null,"farmacia":null,"casa":null,"cosmeticos":null,"eletronicos":null,"mercados":null,"pets":null,"lazer":null},{"id":"2c02a11cd0e64b27ab9dd9c76b9552aa","document":"41266859870","scoreV3":"512","personaBancarizada":"2","personaPresencaDigital":"5","personaBanco":"Bancos Digitais","personaCategoriaCartao":"Entrada","flagVAVR":"0","consumoGeral":"19","magazine":null,"delivery":"36","vestuario":null,"esportes":null,"farmacia":null,"casa":null,"cosmeticos":null,"eletronicos":null,"mercados":null,"pets":null,"lazer":null},{"id":"95dedcfc5ac54f86b43dbe1540ca5ddf","document":"11574370448","scoreV3":"405","personaBancarizada":"0","personaPresencaDigital":"1","personaBanco":"Desbancarizado","personaCategoriaCartao":"Cartao nao mapeado","flagVAVR":"0","consumoGeral":null,"magazine":null,"delivery":null,"vestuario":null,"esportes":null,"farmacia":null,"casa":null,"cosmeticos":null,"eletronicos":null,"mercados":null,"pets":null,"lazer":null},{"id":"c3b7cf45837d4066b0040bef1f350099","document":"85285005434","scoreV3":"621","personaBancarizada":"3","personaPresencaDigital":"6","personaBanco":"Grandes Bancos privados","personaCategoriaCartao":"Entrada","flagVAVR":"0","consumoGeral":"19","magazine":"10","delivery":null,"vestuario":null,"esportes":null,"farmacia":null,"casa":null,"cosmeticos":null,"eletronicos":null,"mercados":null,"pets":null,"lazer":null},{"id":"1252715c29234665ade040ead8c729a4","document":"52690192802","scoreV3":"637","personaBancarizada":"2","personaPresencaDigital":"6","personaBanco":"Grandes Bancos privados","personaCategoriaCartao":"Entrada","flagVAVR":"0","consumoGeral":null,"magazine":null,"delivery":null,"vestuario":null,"esportes":null,"farmacia":null,"casa":null,"cosmeticos":null,"eletronicos":null,"mercados":null,"pets":null,"lazer":null},{"id":"2af129a60cf74027918a410f4440d05f","document":"26071511801","scoreV3":"750","personaBancarizada":"5","personaPresencaDigital":"6","personaBanco":"Bancos Médios","personaCategoriaCartao":"Entrada","flagVAVR":"0","consumoGeral":"95","magazine":null,"delivery":"98","vestuario":null,"esportes":null,"farmacia":null,"casa":null,"cosmeticos":null,"eletronicos":null,"mercados":null,"pets":null,"lazer":null},{"id":"N/A","document":null,"scoreV3":null,"personaBancarizada":null,"personaPresencaDigital":null,"personaBanco":null,"personaCategoriaCartao":null,"flagVAVR":null,"consumoGeral":null,"magazine":null,"delivery":null,"vestuario":null,"esportes":null,"farmacia":null,"casa":null,"cosmeticos":null,"eletronicos":null,"mercados":null,"pets":null,"lazer":null},{"id":"81795f3cd0b247bd95394613ad02bf36","document":"44887151845","scoreV3":"580","personaBancarizada":"5","personaPresencaDigital":"6","personaBanco":"Grandes Bancos privados","personaCategoriaCartao":"Entrada","flagVAVR":"1","consumoGeral":"67","magazine":"47","delivery":"47","vestuario":"62","esportes":"26","farmacia":null,"casa":null,"cosmeticos":null,"eletronicos":null,"mercados":null,"pets":null,"lazer":null},{"id":"dece462ae5a341efa6e901c0b5501c71","document":"40035434830","scoreV3":"820","personaBancarizada":"4","personaPresencaDigital":"6","personaBanco":"Bancos Digitais","personaCategoriaCartao":"Intermediário","flagVAVR":"0","consumoGeral":"92","magazine":null,"delivery":"93","vestuario":"1","esportes":null,"farmacia":"92","casa":null,"cosmeticos":"30","eletronicos":null,"mercados":null,"pets":null,"lazer":null},{"id":"0d622143366e4c63ba313383fb765285","document":"43133106813","scoreV3":"413","personaBancarizada":"2","personaPresencaDigital":"5","personaBanco":"Grandes Bancos privados","personaCategoriaCartao":"Intermediário","flagVAVR":"0","consumoGeral":null,"magazine":null,"delivery":null,"vestuario":null,"esportes":null,"farmacia":null,"casa":null,"cosmeticos":null,"eletronicos":null,"mercados":null,"pets":null,"lazer":null},{"id":"c04c87a19ef5411091cbe9752b1b233f","document":"52927735816","scoreV3":"351","personaBancarizada":"2","personaPresencaDigital":"5","personaBanco":"Bancos Médios","personaCategoriaCartao":"Entrada","flagVAVR":"0","consumoGeral":"47","magazine":null,"delivery":"37","vestuario":"62","esportes":null,"farmacia":null,"casa":null,"cosmeticos":null,"eletronicos":null,"mercados":null,"pets":null,"lazer":null},{"id":"9aa78ce1616a4ea793a4c8c7a1116ae1","document":"40584988893","scoreV3":"412","personaBancarizada":"4","personaPresencaDigital":"6","personaBanco":"Grandes Bancos públicos","personaCategoriaCartao":"Entrada","flagVAVR":"0","consumoGeral":"38","magazine":null,"delivery":"10","vestuario":null,"esportes":"49","farmacia":null,"casa":null,"cosmeticos":null,"eletronicos":"18","mercados":null,"pets":null,"lazer":null},{"id":"8d13883446a6454ca0ed6b8081916f61","document":"22904918884","scoreV3":"669","personaBancarizada":"5","personaPresencaDigital":"6","personaBanco":"Outros","personaCategoriaCartao":"Entrada","flagVAVR":"0","consumoGeral":"85","magazine":null,"delivery":"23","vestuario":null,"esportes":null,"farmacia":null,"casa":"93","cosmeticos":null,"eletronicos":null,"mercados":null,"pets":null,"lazer":null},{"id":"a2cd4b3abf9d473f93f432472e9213e3","document":"48232471832","scoreV3":"666","personaBancarizada":"2","personaPresencaDigital":"6","personaBanco":"Bancos Digitais","personaCategoriaCartao":"Entrada","flagVAVR":"0","consumoGeral":"28","magazine":null,"delivery":null,"vestuario":null,"esportes":"32","farmacia":null,"casa":null,"cosmeticos":null,"eletronicos":null,"mercados":null,"pets":null,"lazer":null},{"id":"bbe84b55d7674f198465e29c1ab2a84f","document":"51098508874","scoreV3":"659","personaBancarizada":"5","personaPresencaDigital":"6","personaBanco":"Bancos Digitais","personaCategoriaCartao":"Intermediário","flagVAVR":"0","consumoGeral":"68","magazine":"46","delivery":null,"vestuario":null,"esportes":"86","farmacia":null,"casa":null,"cosmeticos":null,"eletronicos":null,"mercados":null,"pets":null,"lazer":null},{"id":"6126267dbcef474e9ae039ad8065f97a","document":"52386825817","scoreV3":"499","personaBancarizada":"2","personaPresencaDigital":"2","personaBanco":null,"personaCategoriaCartao":null,"flagVAVR":null,"consumoGeral":null,"magazine":null,"delivery":null,"vestuario":null,"esportes":null,"farmacia":null,"casa":null,"cosmeticos":null,"eletronicos":null,"mercados":null,"pets":null,"lazer":null},{"id":"b510429a190846969f521d79ad270974","document":"45359451874","scoreV3":"603","personaBancarizada":"5","personaPresencaDigital":"5","personaBanco":"Bancos Digitais","personaCategoriaCartao":"Entrada","flagVAVR":"0","consumoGeral":"47","magazine":"43","delivery":null,"vestuario":null,"esportes":null,"farmacia":null,"casa":null,"cosmeticos":null,"eletronicos":null,"mercados":null,"pets":null,"lazer":null},{"id":"2c1bfaad1e664f1eb6bdedc6f03414e6","document":"39309777885","scoreV3":"595","personaBancarizada":"2","personaPresencaDigital":"5","personaBanco":"Bancos Digitais","personaCategoriaCartao":"Entrada","flagVAVR":"1","consumoGeral":"63","magazine":null,"delivery":"62","vestuario":null,"esportes":null,"farmacia":null,"casa":null,"cosmeticos":null,"eletronicos":"81","mercados":null,"pets":null,"lazer":null},{"id":"0a77654a54a046be8e5ed9544353934b","document":"40286114828","scoreV3":"296","personaBancarizada":"5","personaPresencaDigital":"3","personaBanco":"Desbancarizado","personaCategoriaCartao":"VAVR","flagVAVR":"1","consumoGeral":"72","magazine":"22","delivery":"86","vestuario":null,"esportes":null,"farmacia":null,"casa":null,"cosmeticos":null,"eletronicos":null,"mercados":null,"pets":null,"lazer":null},{"id":"704ac166499d447ba55ffd764a9214f7","document":"47179029807","scoreV3":"408","personaBancarizada":"2","personaPresencaDigital":"2","personaBanco":"Grandes Bancos privados","personaCategoriaCartao":"Entrada","flagVAVR":"0","consumoGeral":"24","magazine":null,"delivery":null,"vestuario":null,"esportes":"22","farmacia":null,"casa":null,"cosmeticos":null,"eletronicos":null,"mercados":null,"pets":null,"lazer":null},{"id":"4bffe1e45b274a9d8bc1857875f9bb26","document":"33909188842","scoreV3":"846","personaBancarizada":"5","personaPresencaDigital":"5","personaBanco":"Grandes Bancos privados","personaCategoriaCartao":"Entrada","flagVAVR":"0","consumoGeral":"55","magazine":null,"delivery":null,"vestuario":null,"esportes":null,"farmacia":null,"casa":"60","cosmeticos":null,"eletronicos":null,"mercados":null,"pets":null,"lazer":null},{"id":"d18df178427f4843b3e3021feac5f236","document":"42736248856","scoreV3":"393","personaBancarizada":"4","personaPresencaDigital":"6","personaBanco":"Bancos Médios","personaCategoriaCartao":"Entrada","flagVAVR":"0","consumoGeral":null,"magazine":null,"delivery":null,"vestuario":null,"esportes":null,"farmacia":null,"casa":null,"cosmeticos":null,"eletronicos":null,"mercados":null,"pets":null,"lazer":null},{"id":"3be5943fb6d54de0aad82a7bc44d7d5b","document":"18213279859","scoreV3":"843","personaBancarizada":"5","personaPresencaDigital":"6","personaBanco":"Bancos Digitais","personaCategoriaCartao":"Entrada","flagVAVR":"0","consumoGeral":"16","magazine":null,"delivery":null,"vestuario":null,"esportes":"9","farmacia":null,"casa":null,"cosmeticos":null,"eletronicos":null,"mercados":null,"pets":null,"lazer":null},{"id":"2cdacc5ded5144b9b94d116fd05e5d8b","document":"47510040850","scoreV3":"526","personaBancarizada":"0","personaPresencaDigital":"3","personaBanco":"Grandes Bancos privados","personaCategoriaCartao":"Entrada","flagVAVR":"0","consumoGeral":null,"magazine":null,"delivery":null,"vestuario":null,"esportes":null,"farmacia":null,"casa":null,"cosmeticos":null,"eletronicos":null,"mercados":null,"pets":null,"lazer":null},{"id":"86187a01f4c94f02885b3a8861b94185","document":"40058544860","scoreV3":"752","personaBancarizada":"5","personaPresencaDigital":"6","personaBanco":"Grandes Bancos privados","personaCategoriaCartao":"Intermediário","flagVAVR":"0","consumoGeral":"93","magazine":null,"delivery":"97","vestuario":"34","esportes":"16","farmacia":null,"casa":null,"cosmeticos":"78","eletronicos":null,"mercados":null,"pets":null,"lazer":null},{"id":"c2a3160da76049928aaac63c6599385e","document":"58330817857","scoreV3":"178","personaBancarizada":"0","personaPresencaDigital":"2","personaBanco":"Desbancarizado","personaCategoriaCartao":"Cartao nao mapeado","flagVAVR":"0","consumoGeral":"79","magazine":"80","delivery":"51","vestuario":null,"esportes":null,"farmacia":null,"casa":null,"cosmeticos":null,"eletronicos":null,"mercados":null,"pets":null,"lazer":null},{"id":"f40655984c7845538069a4a93c17c945","document":"43220242898","scoreV3":"578","personaBancarizada":"5","personaPresencaDigital":"5","personaBanco":"Bancos Digitais","personaCategoriaCartao":"Entrada","flagVAVR":"0","consumoGeral":"67","magazine":"44","delivery":"75","vestuario":"19","esportes":null,"farmacia":null,"casa":null,"cosmeticos":null,"eletronicos":null,"mercados":null,"pets":null,"lazer":null},{"id":"bdc55a6aa0c34eadac134a05aaa8106f","document":"40166184870","scoreV3":"705","personaBancarizada":"5","personaPresencaDigital":"6","personaBanco":"Grandes Bancos privados","personaCategoriaCartao":"Entrada","flagVAVR":"0","consumoGeral":null,"magazine":null,"delivery":null,"vestuario":null,"esportes":null,"farmacia":null,"casa":null,"cosmeticos":null,"eletronicos":null,"mercados":null,"pets":null,"lazer":null},{"id":"b397b52938eb480ba9162a5305de268f","document":"35241976809","scoreV3":"467","personaBancarizada":"5","personaPresencaDigital":"5","personaBanco":"Grandes Bancos públicos","personaCategoriaCartao":"Intermediário","flagVAVR":"0","consumoGeral":"28","magazine":null,"delivery":null,"vestuario":null,"esportes":null,"farmacia":null,"casa":null,"cosmeticos":"45","eletronicos":null,"mercados":null,"pets":null,"lazer":null},{"id":"1e4a2839edb9427b84719e6122e6d3d5","document":"38886800851","scoreV3":"365","personaBancarizada":"1","personaPresencaDigital":"1","personaBanco":"Desbancarizado","personaCategoriaCartao":"Cartao nao mapeado","flagVAVR":"0","consumoGeral":null,"magazine":null,"delivery":null,"vestuario":null,"esportes":null,"farmacia":null,"casa":null,"cosmeticos":null,"eletronicos":null,"mercados":null,"pets":null,"lazer":null},{"id":"f6099f7e61474bd4a9b20ed724600900","document":"30095694838","scoreV3":"773","personaBancarizada":"4","personaPresencaDigital":"6","personaBanco":"Grandes Bancos privados","personaCategoriaCartao":"Intermediário","flagVAVR":"0","consumoGeral":"45","magazine":null,"delivery":null,"vestuario":null,"esportes":null,"farmacia":"46","casa":null,"cosmeticos":"56","eletronicos":null,"mercados":null,"pets":null,"lazer":null},{"id":"d4bc0c9c8e394ae59cbbdafc2bdfa43e","document":"00073872105","scoreV3":"539","personaBancarizada":"3","personaPresencaDigital":"6","personaBanco":"Desbancarizado","personaCategoriaCartao":"Cartao nao mapeado","flagVAVR":"0","consumoGeral":"22","magazine":null,"delivery":"39","vestuario":null,"esportes":null,"farmacia":null,"casa":null,"cosmeticos":null,"eletronicos":null,"mercados":null,"pets":null,"lazer":null},{"id":"bca79719773345b1b89000621da57066","document":"00073872105","scoreV3":"539","personaBancarizada":"3","personaPresencaDigital":"6","personaBanco":"Desbancarizado","personaCategoriaCartao":"Cartao nao mapeado","flagVAVR":"0","consumoGeral":"22","magazine":null,"delivery":"39","vestuario":null,"esportes":null,"farmacia":null,"casa":null,"cosmeticos":null,"eletronicos":null,"mercados":null,"pets":null,"lazer":null},{"id":"f3b0a2ac4e5d4ffda82758f8e21aa2b5","document":"45438958866","scoreV3":"540","personaBancarizada":"5","personaPresencaDigital":"6","personaBanco":"Bancos Médios","personaCategoriaCartao":"Entrada","flagVAVR":"1","consumoGeral":"51","magazine":"13","delivery":"61","vestuario":null,"esportes":"32","farmacia":null,"casa":null,"cosmeticos":null,"eletronicos":null,"mercados":null,"pets":null,"lazer":null},{"id":"e8cb6a143a5f429e885f3f7287062811","document":"35882100836","scoreV3":"829","personaBancarizada":"3","personaPresencaDigital":"6","personaBanco":"Grandes Bancos privados","personaCategoriaCartao":"Premium","flagVAVR":"0","consumoGeral":"62","magazine":"32","delivery":null,"vestuario":null,"esportes":"35","farmacia":"63","casa":null,"cosmeticos":"33","eletronicos":null,"mercados":null,"pets":null,"lazer":null},{"id":"e9728269af54431e92967e7e92fff2b5","document":"11953068812","scoreV3":"670","personaBancarizada":"3","personaPresencaDigital":"6","personaBanco":"Cooperativas","personaCategoriaCartao":"Entrada","flagVAVR":"0","consumoGeral":"74","magazine":"6","delivery":"12","vestuario":"29","esportes":null,"farmacia":"63","casa":null,"cosmeticos":"57","eletronicos":"84","mercados":null,"pets":null,"lazer":null},{"id":"f19e93e080bc4a70bfa12f8b35b8bb92","document":"70437643190","scoreV3":"377","personaBancarizada":"2","personaPresencaDigital":"2","personaBanco":"Desbancarizado","personaCategoriaCartao":"Cartao nao mapeado","flagVAVR":"0","consumoGeral":null,"magazine":null,"delivery":null,"vestuario":null,"esportes":null,"farmacia":null,"casa":null,"cosmeticos":null,"eletronicos":null,"mercados":null,"pets":null,"lazer":null},{"id":"7b5b7e5fc6fd40e7a4a97aa446e61b77","document":"54384116896","scoreV3":"264","personaBancarizada":"2","personaPresencaDigital":"3","personaBanco":"Grandes Bancos privados","personaCategoriaCartao":"Entrada","flagVAVR":"0","consumoGeral":"51","magazine":null,"delivery":"73","vestuario":null,"esportes":null,"farmacia":null,"casa":null,"cosmeticos":null,"eletronicos":null,"mercados":null,"pets":null,"lazer":null},{"id":"f56603f3ef69472a84c13149ab797d60","document":"44178400835","scoreV3":"269","personaBancarizada":"3","personaPresencaDigital":"3","personaBanco":"Outros","personaCategoriaCartao":"Entrada","flagVAVR":"1","consumoGeral":"37","magazine":"20","delivery":"41","vestuario":null,"esportes":null,"farmacia":null,"casa":null,"cosmeticos":null,"eletronicos":null,"mercados":null,"pets":null,"lazer":null},{"id":"a1e212b6f94743dd984d1e56d39e7b80","document":"24746062897","scoreV3":"556","personaBancarizada":"4","personaPresencaDigital":"4","personaBanco":"Outros","personaCategoriaCartao":"Entrada","flagVAVR":"0","consumoGeral":"74","magazine":null,"delivery":null,"vestuario":null,"esportes":null,"farmacia":null,"casa":null,"cosmeticos":null,"eletronicos":null,"mercados":null,"pets":"88","lazer":null},{"id":"f4e54fa9f74147e287eb1d94d4b49f0f","document":"49383344881","scoreV3":"403","personaBancarizada":"0","personaPresencaDigital":"1","personaBanco":"Desbancarizado","personaCategoriaCartao":"Cartao nao mapeado","flagVAVR":"0","consumoGeral":null,"magazine":null,"delivery":null,"vestuario":null,"esportes":null,"farmacia":null,"casa":null,"cosmeticos":null,"eletronicos":null,"mercados":null,"pets":null,"lazer":null},{"id":"6281453f0fe54261aef15c3aad0c95a9","document":"52244303802","scoreV3":"376","personaBancarizada":"2","personaPresencaDigital":"4","personaBanco":"Grandes Bancos privados","personaCategoriaCartao":"Entrada","flagVAVR":"0","consumoGeral":"63","magazine":null,"delivery":"82","vestuario":null,"esportes":null,"farmacia":null,"casa":null,"cosmeticos":null,"eletronicos":null,"mercados":null,"pets":null,"lazer":null},{"id":"c0739bbd7fef4869931722e7e3a72a32","document":"44662333814","scoreV3":"842","personaBancarizada":"5","personaPresencaDigital":"5","personaBanco":"Bancos Digitais","personaCategoriaCartao":"Entrada","flagVAVR":"0","consumoGeral":"40","magazine":"21","delivery":"38","vestuario":null,"esportes":null,"farmacia":"14","casa":null,"cosmeticos":null,"eletronicos":null,"mercados":null,"pets":null,"lazer":"11"},{"id":"d400dd36ffba4fc7bb4619138606119e","document":"42312253895","scoreV3":"537","personaBancarizada":"4","personaPresencaDigital":"6","personaBanco":"Outros","personaCategoriaCartao":"Entrada","flagVAVR":"0","consumoGeral":"17","magazine":null,"delivery":"32","vestuario":null,"esportes":null,"farmacia":null,"casa":null,"cosmeticos":null,"eletronicos":null,"mercados":null,"pets":null,"lazer":null},{"id":"ec2fb558bb46446e91cd75de159349a1","document":"49646407870","scoreV3":"576","personaBancarizada":"5","personaPresencaDigital":"5","personaBanco":"Grandes Bancos públicos","personaCategoriaCartao":"Intermediário","flagVAVR":"0","consumoGeral":"61","magazine":null,"delivery":"65","vestuario":null,"esportes":null,"farmacia":null,"casa":null,"cosmeticos":"83","eletronicos":null,"mercados":null,"pets":null,"lazer":null},{"id":"d4a9f4de01b74a99b1ed5f17c6d289f4","document":"48752108848","scoreV3":"459","personaBancarizada":"2","personaPresencaDigital":"3","personaBanco":"Bancos Digitais","personaCategoriaCartao":"Intermediário","flagVAVR":"0","consumoGeral":"39","magazine":null,"delivery":"61","vestuario":null,"esportes":null,"farmacia":null,"casa":null,"cosmeticos":null,"eletronicos":null,"mercados":null,"pets":null,"lazer":null},{"id":"a7a259f0364c4d20b774dfcaa8138f7c","document":"22863403826","scoreV3":"383","personaBancarizada":"5","personaPresencaDigital":"6","personaBanco":"Bancos Médios","personaCategoriaCartao":"Entrada","flagVAVR":"0","consumoGeral":"72","magazine":"54","delivery":"75","vestuario":null,"esportes":null,"farmacia":null,"casa":"21","cosmeticos":null,"eletronicos":null,"mercados":null,"pets":null,"lazer":null},{"id":"61192dbd67974566984f96121907f0ad","document":"46794986841","scoreV3":"536","personaBancarizada":"3","personaPresencaDigital":"6","personaBanco":"Bancos Digitais","personaCategoriaCartao":"Entrada","flagVAVR":"0","consumoGeral":"45","magazine":null,"delivery":"65","vestuario":null,"esportes":"4","farmacia":null,"casa":null,"cosmeticos":null,"eletronicos":null,"mercados":null,"pets":null,"lazer":null},{"id":"03c60a1c84cd4b77a9bca83d7de046ba","document":"47345860809","scoreV3":"435","personaBancarizada":"0","personaPresencaDigital":"2","personaBanco":"Desbancarizado","personaCategoriaCartao":"Cartao nao mapeado","flagVAVR":"0","consumoGeral":null,"magazine":null,"delivery":null,"vestuario":null,"esportes":null,"farmacia":null,"casa":null,"cosmeticos":null,"eletronicos":null,"mercados":null,"pets":null,"lazer":null},{"id":"85027ab5fdfb4f44ac39ea6eecfbb2c7","document":"39921656805","scoreV3":"586","personaBancarizada":"1","personaPresencaDigital":"1","personaBanco":"Desbancarizado","personaCategoriaCartao":"Cartao nao mapeado","flagVAVR":"0","consumoGeral":null,"magazine":null,"delivery":null,"vestuario":null,"esportes":null,"farmacia":null,"casa":null,"cosmeticos":null,"eletronicos":null,"mercados":null,"pets":null,"lazer":null},{"id":"6a296cd8ce434fa3a8a6f1a3ae1a1885","document":"40612275809","scoreV3":"771","personaBancarizada":"5","personaPresencaDigital":"6","personaBanco":"Bancos Digitais","personaCategoriaCartao":"Entrada","flagVAVR":"1","consumoGeral":"99","magazine":"98","delivery":"98","vestuario":"29","esportes":null,"farmacia":null,"casa":null,"cosmeticos":"66","eletronicos":null,"mercados":null,"pets":null,"lazer":null},{"id":"389ca5b1b5a24b18a4c60206c7a944c3","document":"40676981860","scoreV3":"586","personaBancarizada":"2","personaPresencaDigital":"2","personaBanco":"Bancos Digitais","personaCategoriaCartao":"Entrada","flagVAVR":"0","consumoGeral":null,"magazine":null,"delivery":null,"vestuario":null,"esportes":null,"farmacia":null,"casa":null,"cosmeticos":null,"eletronicos":null,"mercados":null,"pets":null,"lazer":null},{"id":"7e9f2fbdad424a7eb52f21f6dc4c4a21","document":"26754931809","scoreV3":"514","personaBancarizada":"2","personaPresencaDigital":"0","personaBanco":"Desbancarizado","personaCategoriaCartao":"Cartao nao mapeado","flagVAVR":"0","consumoGeral":null,"magazine":null,"delivery":null,"vestuario":null,"esportes":null,"farmacia":null,"casa":null,"cosmeticos":null,"eletronicos":null,"mercados":null,"pets":null,"lazer":null},{"id":"N/A","document":null,"scoreV3":null,"personaBancarizada":null,"personaPresencaDigital":null,"personaBanco":null,"personaCategoriaCartao":null,"flagVAVR":null,"consumoGeral":null,"magazine":null,"delivery":null,"vestuario":null,"esportes":null,"farmacia":null,"casa":null,"cosmeticos":null,"eletronicos":null,"mercados":null,"pets":null,"lazer":null},{"id":"980239c609d74fa493ce1f9e607f9c73","document":"36791670835","scoreV3":"460","personaBancarizada":"2","personaPresencaDigital":"2","personaBanco":"Desbancarizado","personaCategoriaCartao":"VAVR","flagVAVR":"0","consumoGeral":"27","magazine":null,"delivery":"47","vestuario":null,"esportes":null,"farmacia":null,"casa":null,"cosmeticos":null,"eletronicos":null,"mercados":null,"pets":null,"lazer":null},{"id":"3032ce8470154fb8844b935578c21118","document":"37718640892","scoreV3":"370","personaBancarizada":"1","personaPresencaDigital":"2","personaBanco":"Desbancarizado","personaCategoriaCartao":"Cartao nao mapeado","flagVAVR":"0","consumoGeral":"27","magazine":null,"delivery":"47","vestuario":null,"esportes":null,"farmacia":null,"casa":null,"cosmeticos":null,"eletronicos":null,"mercados":null,"pets":null,"lazer":null},{"id":"2ac675728ce941219d5fa277863ae9a1","document":"38281307803","scoreV3":"687","personaBancarizada":"4","personaPresencaDigital":"6","personaBanco":"Bancos Digitais","personaCategoriaCartao":"Entrada","flagVAVR":"0","consumoGeral":null,"magazine":null,"delivery":null,"vestuario":null,"esportes":null,"farmacia":null,"casa":null,"cosmeticos":null,"eletronicos":null,"mercados":null,"pets":null,"lazer":null},{"id":"312ba1cd932a4ef5900743745c2dbefb","document":"01308359438","scoreV3":"531","personaBancarizada":"2","personaPresencaDigital":"3","personaBanco":"Grandes Bancos privados","personaCategoriaCartao":"Entrada","flagVAVR":"0","consumoGeral":null,"magazine":null,"delivery":null,"vestuario":null,"esportes":null,"farmacia":null,"casa":null,"cosmeticos":null,"eletronicos":null,"mercados":null,"pets":null,"lazer":null},{"id":"e90121fa982a4d9a9baadcc7b10cf390","document":"10305608894","scoreV3":"777","personaBancarizada":"3","personaPresencaDigital":"5","personaBanco":"Bancos Digitais","personaCategoriaCartao":"Intermediário","flagVAVR":"0","consumoGeral":"12","magazine":"3","delivery":"8","vestuario":null,"esportes":null,"farmacia":null,"casa":null,"cosmeticos":null,"eletronicos":null,"mercados":null,"pets":null,"lazer":null},{"id":"1066730590e0446584b65e67bf0fb515","document":"05338911590","scoreV3":"393","personaBancarizada":"1","personaPresencaDigital":"1","personaBanco":"Desbancarizado","personaCategoriaCartao":"Cartao nao mapeado","flagVAVR":"0","consumoGeral":null,"magazine":null,"delivery":null,"vestuario":null,"esportes":null,"farmacia":null,"casa":null,"cosmeticos":null,"eletronicos":null,"mercados":null,"pets":null,"lazer":null},{"id":"f7d0271533254f6fa56b893faabcc1e3","document":"48518111870","scoreV3":"598","personaBancarizada":"5","personaPresencaDigital":"6","personaBanco":"Bancos Digitais","personaCategoriaCartao":"Entrada","flagVAVR":"0","consumoGeral":"54","magazine":"1","delivery":"41","vestuario":null,"esportes":"54","farmacia":"42","casa":null,"cosmeticos":"27","eletronicos":null,"mercados":null,"pets":null,"lazer":null},{"id":"be57df6037b54fb99bc7d23396bf947e","document":"48425161860","scoreV3":"514","personaBancarizada":"4","personaPresencaDigital":"6","personaBanco":"Outros","personaCategoriaCartao":"Entrada","flagVAVR":"0","consumoGeral":"61","magazine":null,"delivery":"81","vestuario":null,"esportes":null,"farmacia":null,"casa":null,"cosmeticos":null,"eletronicos":null,"mercados":null,"pets":null,"lazer":null},{"id":"b411560b28f74dc28eb50e72cb8ddc45","document":"35403269878","scoreV3":"565","personaBancarizada":"3","personaPresencaDigital":"4","personaBanco":"Grandes Bancos privados","personaCategoriaCartao":"Entrada","flagVAVR":"0","consumoGeral":"58","magazine":"56","delivery":null,"vestuario":null,"esportes":null,"farmacia":null,"casa":null,"cosmeticos":null,"eletronicos":null,"mercados":null,"pets":null,"lazer":null},{"id":"ce3c81ad62c64026b317a1cf4e6dcefd","document":"13438125420","scoreV3":"433","personaBancarizada":"2","personaPresencaDigital":"2","personaBanco":"Bancos Digitais","personaCategoriaCartao":"Entrada","flagVAVR":"1","consumoGeral":"70","magazine":null,"delivery":"87","vestuario":null,"esportes":null,"farmacia":null,"casa":null,"cosmeticos":null,"eletronicos":null,"mercados":null,"pets":null,"lazer":null},{"id":"80e6e567876244779d934df342e844ad","document":"05811181620","scoreV3":"893","personaBancarizada":"5","personaPresencaDigital":"6","personaBanco":"Bancos Médios","personaCategoriaCartao":"Entrada","flagVAVR":"0","consumoGeral":"11","magazine":null,"delivery":null,"vestuario":null,"esportes":null,"farmacia":null,"casa":null,"cosmeticos":null,"eletronicos":null,"mercados":null,"pets":null,"lazer":"31"},{"id":"N/A","document":null,"scoreV3":null,"personaBancarizada":null,"personaPresencaDigital":null,"personaBanco":null,"personaCategoriaCartao":null,"flagVAVR":null,"consumoGeral":null,"magazine":null,"delivery":null,"vestuario":null,"esportes":null,"farmacia":null,"casa":null,"cosmeticos":null,"eletronicos":null,"mercados":null,"pets":null,"lazer":null},{"id":"6d65b8a75dde4790bcd128e41d2bc565","document":"24004519829","scoreV3":"448","personaBancarizada":"2","personaPresencaDigital":"2","personaBanco":"Grandes Bancos privados","personaCategoriaCartao":"Entrada","flagVAVR":"0","consumoGeral":null,"magazine":null,"delivery":null,"vestuario":null,"esportes":null,"farmacia":null,"casa":null,"cosmeticos":null,"eletronicos":null,"mercados":null,"pets":null,"lazer":null},{"id":"3d0cb24972bf46bebad88538d433f4fa","document":"27118425842","scoreV3":"856","personaBancarizada":"5","personaPresencaDigital":"6","personaBanco":"Bancos Médios","personaCategoriaCartao":"Entrada","flagVAVR":"0","consumoGeral":"96","magazine":null,"delivery":"95","vestuario":null,"esportes":null,"farmacia":null,"casa":null,"cosmeticos":null,"eletronicos":null,"mercados":"92","pets":null,"lazer":"95"},{"id":"4a4f067802f14a16ac50e518afcba4b8","document":"27118425842","scoreV3":"856","personaBancarizada":"5","personaPresencaDigital":"6","personaBanco":"Bancos Médios","personaCategoriaCartao":"Entrada","flagVAVR":"0","consumoGeral":"96","magazine":null,"delivery":"95","vestuario":null,"esportes":null,"farmacia":null,"casa":null,"cosmeticos":null,"eletronicos":null,"mercados":"92","pets":null,"lazer":"95"},{"id":"4a32ff64e1484a228d41ba702b776033","document":"49444810801","scoreV3":"280","personaBancarizada":"1","personaPresencaDigital":"4","personaBanco":"Desbancarizado","personaCategoriaCartao":"Cartao nao mapeado","flagVAVR":"0","consumoGeral":"5","magazine":null,"delivery":null,"vestuario":null,"esportes":null,"farmacia":null,"casa":null,"cosmeticos":null,"eletronicos":"8","mercados":null,"pets":null,"lazer":null},{"id":"fd9c51a69e3e4980ac9fef39c83617f2","document":"51467947822","scoreV3":"360","personaBancarizada":"3","personaPresencaDigital":"3","personaBanco":"Bancos Digitais","personaCategoriaCartao":"Entrada","flagVAVR":"0","consumoGeral":"5","magazine":null,"delivery":"12","vestuario":null,"esportes":null,"farmacia":null,"casa":null,"cosmeticos":null,"eletronicos":null,"mercados":null,"pets":null,"lazer":null},{"id":"070cf5d208a64f628196f73d6126baaf","document":"05608617614","scoreV3":"632","personaBancarizada":"5","personaPresencaDigital":"2","personaBanco":"Bancos Digitais","personaCategoriaCartao":"Intermediário","flagVAVR":"0","consumoGeral":"35","magazine":null,"delivery":null,"vestuario":null,"esportes":null,"farmacia":null,"casa":null,"cosmeticos":"59","eletronicos":null,"mercados":null,"pets":null,"lazer":null},{"id":"f8da70cc891f4e5aab621c35d5b82d6e","document":"24060189898","scoreV3":"390","personaBancarizada":"2","personaPresencaDigital":"1","personaBanco":"Grandes Bancos privados","personaCategoriaCartao":"Entrada","flagVAVR":"0","consumoGeral":"48","magazine":"44","delivery":null,"vestuario":null,"esportes":null,"farmacia":null,"casa":null,"cosmeticos":null,"eletronicos":null,"mercados":null,"pets":null,"lazer":null},{"id":"2e6a342b5b5a44f6a7cffbdb8289bccb","document":"52646228848","scoreV3":"507","personaBancarizada":"5","personaPresencaDigital":"6","personaBanco":"Bancos Digitais","personaCategoriaCartao":"Intermediário","flagVAVR":"0","consumoGeral":"75","magazine":"60","delivery":"63","vestuario":null,"esportes":null,"farmacia":"51","casa":null,"cosmeticos":"61","eletronicos":null,"mercados":null,"pets":null,"lazer":null},{"id":"N/A","document":null,"scoreV3":null,"personaBancarizada":null,"personaPresencaDigital":null,"personaBanco":null,"personaCategoriaCartao":null,"flagVAVR":null,"consumoGeral":null,"magazine":null,"delivery":null,"vestuario":null,"esportes":null,"farmacia":null,"casa":null,"cosmeticos":null,"eletronicos":null,"mercados":null,"pets":null,"lazer":null},{"id":"5c45ab36acda455ca658e2b48d58c336","document":"09212466508","scoreV3":"49","personaBancarizada":"0","personaPresencaDigital":"0","personaBanco":"Desbancarizado","personaCategoriaCartao":"Cartao nao mapeado","flagVAVR":"0","consumoGeral":null,"magazine":null,"delivery":null,"vestuario":null,"esportes":null,"farmacia":null,"casa":null,"cosmeticos":null,"eletronicos":null,"mercados":null,"pets":null,"lazer":null},{"id":"c9d7a4259c3f489b9a43ab6614bffe3e","document":"48661612802","scoreV3":"546","personaBancarizada":"2","personaPresencaDigital":"6","personaBanco":"Grandes Bancos privados","personaCategoriaCartao":"Intermediário","flagVAVR":"0","consumoGeral":null,"magazine":null,"delivery":null,"vestuario":null,"esportes":null,"farmacia":null,"casa":null,"cosmeticos":null,"eletronicos":null,"mercados":null,"pets":null,"lazer":null},{"id":"c0779df537824c14be3c75ce3baf7505","document":"42267147840","scoreV3":"603","personaBancarizada":"5","personaPresencaDigital":"4","personaBanco":"Grandes Bancos privados","personaCategoriaCartao":"Entrada","flagVAVR":"0","consumoGeral":"44","magazine":"35","delivery":"31","vestuario":null,"esportes":null,"farmacia":null,"casa":null,"cosmeticos":null,"eletronicos":null,"mercados":null,"pets":null,"lazer":null},{"id":"5fd3b29a787a41f692cd7c03c5d95805","document":"05231573396","scoreV3":"409","personaBancarizada":"2","personaPresencaDigital":"2","personaBanco":"Bancos Digitais","personaCategoriaCartao":"Entrada","flagVAVR":"0","consumoGeral":"12","magazine":null,"delivery":"24","vestuario":null,"esportes":null,"farmacia":null,"casa":null,"cosmeticos":null,"eletronicos":null,"mercados":null,"pets":null,"lazer":null},{"id":"8eefbe4745bc43d799b56fe3bd32222d","document":"51757129855","scoreV3":"581","personaBancarizada":"5","personaPresencaDigital":"6","personaBanco":"Bancos Digitais","personaCategoriaCartao":"Entrada","flagVAVR":"1","consumoGeral":"45","magazine":null,"delivery":"55","vestuario":null,"esportes":"23","farmacia":null,"casa":null,"cosmeticos":"15","eletronicos":null,"mercados":null,"pets":null,"lazer":null},{"id":"5596823b44d0405ebc123154f8eb3131","document":"35229191813","scoreV3":"880","personaBancarizada":"5","personaPresencaDigital":"6","personaBanco":"Bancos Digitais","personaCategoriaCartao":"Entrada","flagVAVR":"1","consumoGeral":"92","magazine":null,"delivery":"92","vestuario":null,"esportes":null,"farmacia":null,"casa":"29","cosmeticos":null,"eletronicos":null,"mercados":"64","pets":"82","lazer":null},{"id":"46c2f4f86cd243ac901e79836d5f9e25","document":"49547301802","scoreV3":"576","personaBancarizada":"2","personaPresencaDigital":"6","personaBanco":"Bancos Digitais","personaCategoriaCartao":"Intermediário","flagVAVR":"0","consumoGeral":"36","magazine":"31","delivery":null,"vestuario":null,"esportes":null,"farmacia":null,"casa":null,"cosmeticos":null,"eletronicos":null,"mercados":null,"pets":null,"lazer":null}];
+        let filteredData = [...data];
+        let currentPage = 1;
+        const recordsPerPage = 10;
+
+        function formatCPF(cpf) {
+            return cpf.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.***.***-$4');
+        }
+
+        function getScoreClass(value, isConsumption = false) {
+            const num = parseInt(value);
+            if (isConsumption) {
+                if (num >= 70) return 'score-high';
+                if (num >= 40) return 'score-medium';
+                return 'score-low';
+            } else {
+                if (num >= 500) return 'score-high';
+                if (num >= 200) return 'score-medium';
+                return 'score-low';
+            }
+        }
+
+        function renderTable() {
+            const tbody = document.getElementById('tableBody');
+            tbody.innerHTML = '';
+
+            if (filteredData.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="20" class="no-results">🔍 Nenhum resultado encontrado</td></tr>';
+                updatePagination();
+                return;
+            }
+
+            const totalPages = Math.ceil(filteredData.length / recordsPerPage);
+            const startIndex = (currentPage - 1) * recordsPerPage;
+            const endIndex = Math.min(startIndex + recordsPerPage, filteredData.length);
+            
+            const pageData = filteredData.slice(startIndex, endIndex);
+
+            pageData.forEach(row => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+        <td><div class="document-id">${row.id.substring(0, 8)}...</div></td>
+        <td><div class="cpf">${formatCPF(row.document)}</div></td>
+        <td class="${getScoreClass(row.scoreV3)}">${row.scoreV3}</td>
+        <td>${row.personaBancarizada || '-'}</td>
+        <td>${row.personaPresencaDigital || '-'}</td>
+        <td>${row.personaBanco || '-'}</td>
+        <td>${row.personaCategoriaCartao || '-'}</td>
+        <td>${row.flagVAVR || '-'}</td>
+        <td class="${row.consumoGeral ? getScoreClass(row.consumoGeral, true) : ''}">${row.consumoGeral || '-'}</td>
+        <td class="${row.magazine ? getScoreClass(row.magazine, true) : ''}">${row.magazine || '-'}</td>
+        <td class="${row.delivery ? getScoreClass(row.delivery, true) : ''}">${row.delivery || '-'}</td>
+        <td class="${row.vestuario ? getScoreClass(row.vestuario, true) : ''}">${row.vestuario || '-'}</td>
+        <td class="${row.esportes ? getScoreClass(row.esportes, true) : ''}">${row.esportes || '-'}</td>
+        <td class="${row.farmacia ? getScoreClass(row.farmacia, true) : ''}">${row.farmacia || '-'}</td>
+        <td class="${row.casa ? getScoreClass(row.casa, true) : ''}">${row.casa || '-'}</td>
+        <td class="${row.cosmeticos ? getScoreClass(row.cosmeticos, true) : ''}">${row.cosmeticos || '-'}</td>
+        <td class="${row.eletronicos ? getScoreClass(row.eletronicos, true) : ''}">${row.eletronicos || '-'}</td>
+        <td class="${row.mercados ? getScoreClass(row.mercados, true) : ''}">${row.mercados || '-'}</td>
+        <td class="${row.pets ? getScoreClass(row.pets, true) : ''}">${row.pets || '-'}</td>
+        <td class="${row.lazer ? getScoreClass(row.lazer, true) : ''}">${row.lazer || '-'}</td>
+    `;
+                tbody.appendChild(tr);
+            });
+
+            document.getElementById('visible-records').textContent = `${startIndex + 1}-${endIndex}`;
+            document.getElementById('total-records').textContent = filteredData.length;
+            updatePagination();
+        }
+
+        function updatePagination() {
+            const totalPages = Math.ceil(filteredData.length / recordsPerPage);
+            const pagination = document.getElementById('pagination');
+            
+            if (totalPages <= 1) {
+                pagination.style.display = 'none';
+                return;
+            }
+            
+            pagination.style.display = 'flex';
+            pagination.innerHTML = '';
+
+            // Botão Anterior
+            const prevBtn = document.createElement('button');
+            prevBtn.textContent = '← Anterior';
+            prevBtn.className = 'page-btn';
+            prevBtn.disabled = currentPage === 1;
+            prevBtn.onclick = () => changePage(currentPage - 1);
+            pagination.appendChild(prevBtn);
+
+            // Números das páginas
+            const startPage = Math.max(1, currentPage - 2);
+            const endPage = Math.min(totalPages, currentPage + 2);
+
+            if (startPage > 1) {
+                const firstBtn = document.createElement('button');
+                firstBtn.textContent = '1';
+                firstBtn.className = 'page-btn';
+                firstBtn.onclick = () => changePage(1);
+                pagination.appendChild(firstBtn);
+                
+                if (startPage > 2) {
+                    const dots = document.createElement('span');
+                    dots.textContent = '...';
+                    dots.className = 'page-dots';
+                    pagination.appendChild(dots);
+                }
+            }
+
+            for (let i = startPage; i <= endPage; i++) {
+                const pageBtn = document.createElement('button');
+                pageBtn.textContent = i;
+                pageBtn.className = 'page-btn' + (i === currentPage ? ' active' : '');
+                pageBtn.onclick = () => changePage(i);
+                pagination.appendChild(pageBtn);
+            }
+
+            if (endPage < totalPages) {
+                if (endPage < totalPages - 1) {
+                    const dots = document.createElement('span');
+                    dots.textContent = '...';
+                    dots.className = 'page-dots';
+                    pagination.appendChild(dots);
+                }
+                
+                const lastBtn = document.createElement('button');
+                lastBtn.textContent = totalPages;
+                lastBtn.className = 'page-btn';
+                lastBtn.onclick = () => changePage(totalPages);
+                pagination.appendChild(lastBtn);
+            }
+
+            // Botão Próximo
+            const nextBtn = document.createElement('button');
+            nextBtn.textContent = 'Próximo →';
+            nextBtn.className = 'page-btn';
+            nextBtn.disabled = currentPage === totalPages;
+            nextBtn.onclick = () => changePage(currentPage + 1);
+            pagination.appendChild(nextBtn);
+
+            // Info da página
+            const pageInfo = document.createElement('div');
+            pageInfo.className = 'page-info';
+            pageInfo.innerHTML = `Página ${currentPage} de ${totalPages}`;
+            pagination.appendChild(pageInfo);
+        }
+
+        function changePage(page) {
+            const totalPages = Math.ceil(filteredData.length / recordsPerPage);
+            if (page >= 1 && page <= totalPages) {
+                currentPage = page;
+                renderTable();
+            }
+        }
+
+        function filterData() {
+            const searchTerm = document.getElementById('searchBox').value.toLowerCase();
+
+            if (!searchTerm) {
+                filteredData = [...data];
+            } else {
+                filteredData = data.filter(row => {
+                    return Object.values(row).some(value =>
+                        value && value.toString().toLowerCase().includes(searchTerm)
+                    );
+                });
+            }
+
+            currentPage = 1; // Reset para primeira página após filtrar
+            renderTable();
+        }
+
+        function downloadCSV() {
+            try {
+                const headers = [
+                    'id', 'document', 'scoreV3', 'personaBancarizada', 'personaPresencaDigital',
+                    'personaBanco', 'personaCategoriaCartao', 'flagVAVR', 'consumoGeral',
+                    'magazine', 'delivery', 'vestuario', 'esportes', 'farmacia', 'casa',
+                    'cosmeticos', 'eletronicos', 'mercados', 'pets', 'lazer'
+                ];
+
+                let csvContent = headers.join(',') + '\n';
+
+                data.forEach(row => {
+                    const rowData = [
+                        row.id,
+                        row.document,
+                        row.scoreV3,
+                        row.personaBancarizada,
+                        row.personaPresencaDigital,
+                        `"${row.personaBanco}"`,
+                        row.personaCategoriaCartao,
+                        row.flagVAVR,
+                        row.consumoGeral,
+                        row.magazine,
+                        row.delivery,
+                        row.vestuario,
+                        row.esportes,
+                        row.farmacia,
+                        row.casa,
+                        row.cosmeticos,
+                        row.eletronicos,
+                        row.mercados,
+                        row.pets,
+                        row.lazer
+                    ];
+                    csvContent += rowData.join(',') + '\n';
+                });
+
+                const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+                const url = window.URL.createObjectURL(blob);
+                const link = document.createElement('a');
+
+                link.href = url;
+                link.download = `credit_pro_scores_${new Date().toISOString().split('T')[0]}.csv`;
+                link.click();
+
+                window.URL.revokeObjectURL(url);
+
+                const btn = document.querySelector('.download-btn');
+                const originalText = btn.textContent;
+                btn.textContent = '✅ Download Iniciado!';
+                setTimeout(() => {
+                    btn.textContent = originalText;
+                }, 2000);
+
+            } catch (error) {
+                console.error('Erro ao baixar CSV:', error);
+                alert('Erro ao gerar o arquivo CSV. Tente novamente.');
+            }
+        }
+
+        document.getElementById('searchBox').addEventListener('input', filterData);
+        renderTable();
+    </script>
+</body>
+
+</html>
