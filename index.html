@@ -112,6 +112,93 @@
             transform: translateY(-2px);
         }
 
+        .filter-section {
+            background: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 6px;
+            padding: 15px;
+            margin-bottom: 10px;
+        }
+
+        .filter-row {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            flex-wrap: wrap;
+            margin-bottom: 10px;
+        }
+
+        .filter-row:last-child {
+            margin-bottom: 0;
+        }
+
+        .filter-group {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .filter-label {
+            font-weight: 600;
+            color: #495057;
+            white-space: nowrap;
+        }
+
+        .filter-select {
+            padding: 8px 12px;
+            border: 1px solid #ced4da;
+            border-radius: 4px;
+            background: white;
+            font-size: 14px;
+            min-width: 120px;
+        }
+
+        .filter-select:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 2px rgba(102, 126, 234, 0.25);
+        }
+
+        .sort-btn {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .sort-btn:hover {
+            background: #5a67d8;
+            transform: translateY(-1px);
+        }
+
+        .sort-btn.active {
+            background: #4c51bf;
+        }
+
+        .clear-filters-btn {
+            background: #6c757d;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+
+        .clear-filters-btn:hover {
+            background: #5a6268;
+        }
+
         .table-container {
             overflow-x: auto;
             max-height: 600px;
@@ -418,7 +505,7 @@
     <div class="container">
         <div class="header">
             <h1>📊 Potencial de Consumo por cliente</h1>
-            <p>Gerado em 13/08/2025, 10:57:32</p>
+            <p>Gerado em 13/08/2025, 11:06:23</p>
         </div>
 
         <div class="stats">
@@ -436,10 +523,86 @@
             </div>
         </div>
 
-        <div class="controls">
-            <input type="text" class="search-box" id="searchBox"
-                placeholder="🔍 Pesquisar por ID, CPF ou qualquer valor...">
-            <button class="download-btn" onclick="downloadCSV()">📥 Baixar CSV</button>
+        <div class="filter-section">
+            <div class="filter-row">
+                <div class="filter-group">
+                    <span class="filter-label">Score de Crédito:</span>
+                    <select class="filter-select" id="scoreCreditoFilter">
+                        <option value="">Todos os valores</option>
+                        <option value="high">Alto (≥500)</option>
+                        <option value="medium">Médio (200-499)</option>
+                        <option value="low">Baixo (<200)</option>
+                        <option value="custom-credito">Personalizado...</option>
+                    </select>
+                </div>
+                <div class="filter-group" id="customCreditoGroup" style="display: none;">
+                    <span class="filter-label">De:</span>
+                    <input type="number" class="filter-select" id="scoreCreditoMin" placeholder="0" min="0" max="1000" style="width: 80px;">
+                    <span class="filter-label">Até:</span>
+                    <input type="number" class="filter-select" id="scoreCreditoMax" placeholder="1000" min="0" max="1000" style="width: 80px;">
+                </div>
+                <div class="filter-group">
+                    <span class="filter-label">Score Fit:</span>
+                    <select class="filter-select" id="scoreFitFilter">
+                        <option value="">Todos os valores</option>
+                        <option value="high">Alto (≥70)</option>
+                        <option value="medium">Médio (40-69)</option>
+                        <option value="low">Baixo (<40)</option>
+                        <option value="custom-fit">Personalizado...</option>
+                    </select>
+                </div>
+                <div class="filter-group" id="customFitGroup" style="display: none;">
+                    <span class="filter-label">De:</span>
+                    <input type="number" class="filter-select" id="scoreFitMin" placeholder="0" min="0" max="100" step="0.1" style="width: 80px;">
+                    <span class="filter-label">Até:</span>
+                    <input type="number" class="filter-select" id="scoreFitMax" placeholder="100" min="0" max="100" step="0.1" style="width: 80px;">
+                </div>
+            </div>
+            <div class="filter-row">
+                <div class="filter-group">
+                    <span class="filter-label">Persona Bancarizada:</span>
+                    <select class="filter-select" id="personaBancarizadaFilter">
+                        <option value="">Todos os níveis</option>
+                        <option value="0">0 - Sem histórico bancário</option>
+                        <option value="1">1 - Com relacionamento, sem crédito digital</option>
+                        <option value="2">2 - Pouco uso de crédito digital</option>
+                        <option value="3">3 - Uso médio de crédito digital</option>
+                        <option value="4">4 - Prefere pagamento à vista digital</option>
+                        <option value="5">5 - Prefere pagamento parcelado digital</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <span class="filter-label">Presença Digital:</span>
+                    <select class="filter-select" id="presencaDigitalFilter">
+                        <option value="">Todos os níveis</option>
+                        <option value="0">0 - Sem presença digital</option>
+                        <option value="1">1 - Baixa presença, sem consumo</option>
+                        <option value="2">2 - Baixa presença, baixo consumo</option>
+                        <option value="3">3 - Média presença, baixo consumo</option>
+                        <option value="4">4 - Média presença, médio consumo</option>
+                        <option value="5">5 - Alta presença, médio consumo</option>
+                        <option value="6">6 - Alta presença, alto consumo</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <span class="filter-label">Vale-refeição:</span>
+                    <select class="filter-select" id="valeRefeicaoFilter">
+                        <option value="">Todos</option>
+                        <option value="1">Possui</option>
+                        <option value="0">Não possui</option>
+                    </select>
+                </div>
+            </div>
+            <div class="filter-row">
+                <button class="sort-btn" id="sortScoreFitBtn" onclick="toggleScoreFitSort()">
+                    <span>↕️ Ordenar por Score Fit</span>
+                </button>
+                <button class="sort-btn" id="sortScoreCreditoBtn" onclick="toggleScoreCreditoSort()">
+                    <span>↕️ Ordenar por Score Crédito</span>
+                </button>
+                <button class="clear-filters-btn" onclick="clearAllFilters()">🗑️ Limpar Filtros</button>
+                <button class="download-btn" onclick="downloadCSV()">📥 Baixar CSV</button>
+            </div>
         </div>
 
         <div class="table-container">
@@ -494,6 +657,8 @@
         let filteredData = [...data];
         let currentPage = 1;
         const recordsPerPage = 10;
+        let currentSortDirection = 'none'; // 'asc', 'desc', 'none'
+        let currentCreditoSortDirection = 'none'; // 'asc', 'desc', 'none'
 
         function formatCPF(cpf) {
             return cpf.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.***.***-$4');
@@ -689,21 +854,197 @@
             }
         }
 
-        function filterData() {
-            const searchTerm = document.getElementById('searchBox').value.toLowerCase();
+        function applyFilters() {
+            // Obter valores dos filtros
+            const scoreCreditoFilter = document.getElementById('scoreCreditoFilter').value;
+            const scoreCreditoMin = parseFloat(document.getElementById('scoreCreditoMin').value);
+            const scoreCreditoMax = parseFloat(document.getElementById('scoreCreditoMax').value);
+            const scoreFitFilter = document.getElementById('scoreFitFilter').value;
+            const scoreFitMin = parseFloat(document.getElementById('scoreFitMin').value);
+            const scoreFitMax = parseFloat(document.getElementById('scoreFitMax').value);
+            const personaBancarizadaFilter = document.getElementById('personaBancarizadaFilter').value;
+            const presencaDigitalFilter = document.getElementById('presencaDigitalFilter').value;
+            const valeRefeicaoFilter = document.getElementById('valeRefeicaoFilter').value;
 
-            if (!searchTerm) {
-                filteredData = [...data];
-            } else {
-                filteredData = data.filter(row => {
-                    return Object.values(row).some(value =>
-                        value && value.toString().toLowerCase().includes(searchTerm)
-                    );
-                });
-            }
+            filteredData = data.filter(row => {
+                // Filtro de Score de Crédito
+                let matchesScoreCredito = true;
+                if (scoreCreditoFilter && row.scoreV3 !== null && row.scoreV3 !== undefined) {
+                    const scoreCredito = parseFloat(row.scoreV3);
+                    
+                    if (scoreCreditoFilter === 'high') {
+                        matchesScoreCredito = scoreCredito >= 500;
+                    } else if (scoreCreditoFilter === 'medium') {
+                        matchesScoreCredito = scoreCredito >= 200 && scoreCredito < 500;
+                    } else if (scoreCreditoFilter === 'low') {
+                        matchesScoreCredito = scoreCredito < 200;
+                    } else if (scoreCreditoFilter === 'custom-credito') {
+                        const min = isNaN(scoreCreditoMin) ? 0 : scoreCreditoMin;
+                        const max = isNaN(scoreCreditoMax) ? 1000 : scoreCreditoMax;
+                        matchesScoreCredito = scoreCredito >= min && scoreCredito <= max;
+                    }
+                } else if (scoreCreditoFilter && scoreCreditoFilter !== '') {
+                    matchesScoreCredito = false;
+                }
+
+                // Filtro de Score Fit
+                let matchesScoreFit = true;
+                if (scoreFitFilter && row.leadScoreFit !== null && row.leadScoreFit !== undefined) {
+                    const scoreFit = parseFloat(row.leadScoreFit);
+                    
+                    if (scoreFitFilter === 'high') {
+                        matchesScoreFit = scoreFit >= 70;
+                    } else if (scoreFitFilter === 'medium') {
+                        matchesScoreFit = scoreFit >= 40 && scoreFit < 70;
+                    } else if (scoreFitFilter === 'low') {
+                        matchesScoreFit = scoreFit < 40;
+                    } else if (scoreFitFilter === 'custom-fit') {
+                        const min = isNaN(scoreFitMin) ? 0 : scoreFitMin;
+                        const max = isNaN(scoreFitMax) ? 100 : scoreFitMax;
+                        matchesScoreFit = scoreFit >= min && scoreFit <= max;
+                    }
+                } else if (scoreFitFilter && scoreFitFilter !== '') {
+                    matchesScoreFit = false;
+                }
+
+                // Filtro de Persona Bancarizada
+                let matchesPersonaBancarizada = true;
+                if (personaBancarizadaFilter !== '') {
+                    matchesPersonaBancarizada = row.personaBancarizada && row.personaBancarizada.toString() === personaBancarizadaFilter;
+                }
+
+                // Filtro de Presença Digital
+                let matchesPresencaDigital = true;
+                if (presencaDigitalFilter !== '') {
+                    matchesPresencaDigital = row.personaPresencaDigital && row.personaPresencaDigital.toString() === presencaDigitalFilter;
+                }
+
+                // Filtro de Vale-refeição
+                let matchesValeRefeicao = true;
+                if (valeRefeicaoFilter !== '') {
+                    matchesValeRefeicao = row.flagVAVR && row.flagVAVR.toString() === valeRefeicaoFilter;
+                }
+
+                return matchesScoreCredito && matchesScoreFit && matchesPersonaBancarizada && 
+                       matchesPresencaDigital && matchesValeRefeicao;
+            });
+
+            // Aplicar ordenação se ativa
+            applySorting();
 
             currentPage = 1; // Reset para primeira página após filtrar
             renderTable();
+        }
+
+        function applySorting() {
+            if (currentSortDirection !== 'none') {
+                filteredData.sort((a, b) => {
+                    const aScore = parseFloat(a.leadScoreFit) || 0;
+                    const bScore = parseFloat(b.leadScoreFit) || 0;
+                    
+                    if (currentSortDirection === 'asc') {
+                        return aScore - bScore;
+                    } else {
+                        return bScore - aScore;
+                    }
+                });
+            } else if (currentCreditoSortDirection !== 'none') {
+                filteredData.sort((a, b) => {
+                    const aScore = parseFloat(a.scoreV3) || 0;
+                    const bScore = parseFloat(b.scoreV3) || 0;
+                    
+                    if (currentCreditoSortDirection === 'asc') {
+                        return aScore - bScore;
+                    } else {
+                        return bScore - aScore;
+                    }
+                });
+            }
+        }
+
+        function toggleScoreFitSort() {
+            // Reset ordenação por Score Crédito
+            currentCreditoSortDirection = 'none';
+            const creditoBtn = document.getElementById('sortScoreCreditoBtn');
+            creditoBtn.querySelector('span').textContent = '↕️ Ordenar por Score Crédito';
+            creditoBtn.classList.remove('active');
+            
+            const btn = document.getElementById('sortScoreFitBtn');
+            const span = btn.querySelector('span');
+            
+            if (currentSortDirection === 'none') {
+                currentSortDirection = 'desc';
+                span.textContent = '⬇️ Score Fit (Maior → Menor)';
+                btn.classList.add('active');
+            } else if (currentSortDirection === 'desc') {
+                currentSortDirection = 'asc';
+                span.textContent = '⬆️ Score Fit (Menor → Maior)';
+                btn.classList.add('active');
+            } else {
+                currentSortDirection = 'none';
+                span.textContent = '↕️ Ordenar por Score Fit';
+                btn.classList.remove('active');
+            }
+            
+            applyFilters();
+        }
+
+        function toggleScoreCreditoSort() {
+            // Reset ordenação por Score Fit
+            currentSortDirection = 'none';
+            const fitBtn = document.getElementById('sortScoreFitBtn');
+            fitBtn.querySelector('span').textContent = '↕️ Ordenar por Score Fit';
+            fitBtn.classList.remove('active');
+            
+            const btn = document.getElementById('sortScoreCreditoBtn');
+            const span = btn.querySelector('span');
+            
+            if (currentCreditoSortDirection === 'none') {
+                currentCreditoSortDirection = 'desc';
+                span.textContent = '⬇️ Score Crédito (Maior → Menor)';
+                btn.classList.add('active');
+            } else if (currentCreditoSortDirection === 'desc') {
+                currentCreditoSortDirection = 'asc';
+                span.textContent = '⬆️ Score Crédito (Menor → Maior)';
+                btn.classList.add('active');
+            } else {
+                currentCreditoSortDirection = 'none';
+                span.textContent = '↕️ Ordenar por Score Crédito';
+                btn.classList.remove('active');
+            }
+            
+            applyFilters();
+        }
+
+        function clearAllFilters() {
+            // Limpar todos os filtros
+            document.getElementById('scoreCreditoFilter').value = '';
+            document.getElementById('scoreCreditoMin').value = '';
+            document.getElementById('scoreCreditoMax').value = '';
+            document.getElementById('customCreditoGroup').style.display = 'none';
+            
+            document.getElementById('scoreFitFilter').value = '';
+            document.getElementById('scoreFitMin').value = '';
+            document.getElementById('scoreFitMax').value = '';
+            document.getElementById('customFitGroup').style.display = 'none';
+            
+            document.getElementById('personaBancarizadaFilter').value = '';
+            document.getElementById('presencaDigitalFilter').value = '';
+            document.getElementById('valeRefeicaoFilter').value = '';
+            
+            // Reset ordenação Score Fit
+            currentSortDirection = 'none';
+            const fitBtn = document.getElementById('sortScoreFitBtn');
+            fitBtn.querySelector('span').textContent = '↕️ Ordenar por Score Fit';
+            fitBtn.classList.remove('active');
+            
+            // Reset ordenação Score Crédito
+            currentCreditoSortDirection = 'none';
+            const creditoBtn = document.getElementById('sortScoreCreditoBtn');
+            creditoBtn.querySelector('span').textContent = '↕️ Ordenar por Score Crédito';
+            creditoBtn.classList.remove('active');
+            
+            applyFilters();
         }
 
         function downloadCSV() {
@@ -816,7 +1157,36 @@
             }
         }
 
-        document.getElementById('searchBox').addEventListener('input', filterData);
+        // Event listeners para filtros
+        document.getElementById('scoreCreditoFilter').addEventListener('change', function() {
+            const customGroup = document.getElementById('customCreditoGroup');
+            if (this.value === 'custom-credito') {
+                customGroup.style.display = 'flex';
+            } else {
+                customGroup.style.display = 'none';
+            }
+            applyFilters();
+        });
+        
+        document.getElementById('scoreCreditoMin').addEventListener('input', applyFilters);
+        document.getElementById('scoreCreditoMax').addEventListener('input', applyFilters);
+        
+        document.getElementById('scoreFitFilter').addEventListener('change', function() {
+            const customGroup = document.getElementById('customFitGroup');
+            if (this.value === 'custom-fit') {
+                customGroup.style.display = 'flex';
+            } else {
+                customGroup.style.display = 'none';
+            }
+            applyFilters();
+        });
+        
+        document.getElementById('scoreFitMin').addEventListener('input', applyFilters);
+        document.getElementById('scoreFitMax').addEventListener('input', applyFilters);
+        
+        document.getElementById('personaBancarizadaFilter').addEventListener('change', applyFilters);
+        document.getElementById('presencaDigitalFilter').addEventListener('change', applyFilters);
+        document.getElementById('valeRefeicaoFilter').addEventListener('change', applyFilters);
         
         // Sistema de tooltips personalizado
         const tooltipTexts = {
